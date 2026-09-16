@@ -1,4 +1,0 @@
-project_id = "caiment"
-
-[functions.tripo-avatar]
-verify_jwt = false

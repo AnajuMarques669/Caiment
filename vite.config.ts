@@ -7,15 +7,24 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  root: path.resolve(__dirname, './backend'),
+
   plugins: [react(), tailwindcss()],
+
   server: {
     proxy: {
       '/api': 'http://localhost:3001',
     },
   },
+
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './backend/src'),
     },
+  },
+
+  build: {
+    outDir: path.resolve(__dirname, './dist'),
+    emptyOutDir: true,
   },
 })
