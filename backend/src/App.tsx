@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
@@ -37,6 +38,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
+       <AuthProvider>
         <BrowserRouter>
           <Routes>
 
@@ -149,7 +151,8 @@ export default function App() {
 
           </Routes>
         </BrowserRouter>
-      </ToastProvider>
+         </AuthProvider>      
+    </ToastProvider>
     </ErrorBoundary>
   );
 }

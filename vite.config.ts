@@ -7,9 +7,14 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: path.resolve(__dirname, './backend'),
+  root: 'backend',
 
-  plugins: [react(), tailwindcss()],
+  envDir: __dirname,
+
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
 
   server: {
     proxy: {
@@ -24,7 +29,7 @@ export default defineConfig({
   },
 
   build: {
-    outDir: path.resolve(__dirname, './dist'),
+    outDir: '../dist',
     emptyOutDir: true,
   },
 })
