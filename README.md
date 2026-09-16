@@ -56,20 +56,6 @@ src/
     └── /configuracoes
 ```
 
-## O que NÃO está implementado (de propósito)
 
-- Integração real com o Tripo AI (os tipos e pontos de extensão já existem em `src/types` e `src/services/avatarService.ts`)
-- Backend / Supabase / autenticação real
-- Sistema real de recomendação de tamanho (mock em `src/services/recommendationService.ts`)
-- Processamento real de imagens
 
-## Preparação para as próximas etapas
 
-- `AvatarViewer` (`src/components/avatar/AvatarViewer.tsx`) já aceita uma prop
-  `modelUrl` — quando um `.glb` real existir, basta passá-la e o placeholder
-  procedural é substituído automaticamente.
-- `Clothing.clothingModelUrl` em `src/types/index.ts` está pronto para receber
-  o modelo 3D de cada peça.
-- `AvatarGenerationStatus` e `AvatarGenerationTask` em `src/types/index.ts`
-  espelham o que uma resposta real do Tripo AI (taskId, status, modelUrl,
-  previewUrl) deverá preencher.
