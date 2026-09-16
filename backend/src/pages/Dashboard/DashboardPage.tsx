@@ -16,14 +16,19 @@ import { Button } from '@/components/ui/Button';
 import { CaimentBubble } from '@/components/caiment/CaimentBubble';
 import { AvatarViewer } from '@/components/avatar/AvatarViewer';
 
+import { useAuth } from '@/context/AuthContext';
+import { getUserProfile } from '@/services/firebase/users';
+
 import { mockHistory } from '@/data/mock/mockHistory';
 import { mockAvatar } from '@/data/mock/mockAvatar';
-import { mockCurrentUser } from '@/data/mock/mockUsers';
 import { getCaimentMessage } from '@/data/mock/mockCaiment';
 import { formatDate } from '@/utils/format';
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+
   const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     const savedModelUrl = sessionStorage.getItem(
@@ -35,7 +40,40 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const firstName = mockCurrentUser.name.split(' ')[0];
+  useEffect(() => {
+    async function loadUserProfile() {
+      if (!user) {
+        return;
+      }
+
+      try {
+        console.log('Buscando perfil do usuário no Firestore...');
+
+        const profile = await getUserProfile(user.uid);
+
+        if (profile?.name) {
+          setUserName(profile.name);
+          console.log('Nome carregado do Firestore:', profile.name);
+        } else {
+          setUserName(user.displayName || 'usuário');
+          console.log('Perfil não possui nome salvo.');
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao carregar perfil do usuário:',
+          error,
+        );
+
+        setUserName(user.displayName || 'usuário');
+      }
+    }
+
+    loadUserProfile();
+  }, [user]);
+
+  const firstName = userName
+    ? userName.split(' ')[0]
+    : 'usuário';
 
   const recentHistory = mockHistory.slice(0, 3);
 
