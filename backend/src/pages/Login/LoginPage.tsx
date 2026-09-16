@@ -1,43 +1,54 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Shirt } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
+
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { CaimentRobot } from '@/components/caiment/CaimentRobot';
-import {
-  loginUser,
-  resetPassword,
-} from '@/services/firebase/auth';
+
+import { loginUser } from '@/services/firebase/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     setError('');
-    setMessage('');
     setLoading(true);
 
     try {
-      await loginUser(email, password);
+      console.log('1. Iniciando login no Firebase...');
 
-      navigate('/dashboard');
+      const user = await loginUser(email, password);
+
+      console.log('2. Login realizado:', user.uid);
+
+      console.log('3. Indo para /dashboard...');
+
+      navigate('/dashboard', { replace: true });
+
+      console.log('4. Navegação executada!');
     } catch (error: any) {
-      console.error('Erro ao fazer login:', error);
+      console.error('ERRO NO LOGIN:', error);
 
       switch (error?.code) {
         case 'auth/invalid-credential':
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
           setError('E-mail ou senha incorretos.');
+          break;
+
+        case 'auth/user-not-found':
+          setError('Não encontramos uma conta com este e-mail.');
+          break;
+
+        case 'auth/wrong-password':
+          setError('Senha incorreta.');
           break;
 
         case 'auth/invalid-email':
@@ -55,63 +66,57 @@ export default function LoginPage() {
           break;
 
         default:
-          setError('Não foi possível entrar. Tente novamente.');
+          setError(
+            error?.message ||
+              'Não foi possível entrar. Tente novamente.'
+          );
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = async () => {
-    setError('');
-    setMessage('');
-
-    if (!email.trim()) {
-      setError('Digite seu e-mail antes de recuperar a senha.');
-      return;
-    }
-
-    try {
-      await resetPassword(email);
-
-      setMessage(
-        'Enviamos um link para redefinir sua senha. Verifique seu e-mail.'
-      );
-    } catch (error: any) {
-      console.error('Erro ao recuperar senha:', error);
-
-      switch (error?.code) {
-        case 'auth/invalid-email':
-          setError('Digite um e-mail válido.');
-          break;
-
-        case 'auth/user-not-found':
-          setError('Não encontramos uma conta com esse e-mail.');
-          break;
-
-        default:
-          setError(
-            'Não foi possível enviar o e-mail de recuperação.'
-          );
-      }
-    }
-  };
-
   return (
     <AuthLayout wide>
-      <div className="grid items-center gap-8 sm:grid-cols-[1.1fr_0.9fr]">
-        <div>
+      <div className="grid gap-8 sm:grid-cols-2">
+        <div className="flex flex-col justify-center">
           <h1 className="font-display text-3xl font-medium leading-tight text-caiment-ink">
-            Conecte-se
+            Bem-vindo
             <br />
-            <span className="text-caiment-purple-600">CAIMENT</span>
+            <span className="text-caiment-purple-600">de volta</span>
           </h1>
 
-          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+          <p className="mt-3 max-w-xs text-sm text-caiment-ink-soft">
+            Entre na sua conta para continuar sua experiência
+            no CAIMENT.
+          </p>
+
+          <p className="mt-8 text-sm text-caiment-ink-soft">
+            Ainda não tem uma conta?{' '}
+            <Link to="/cadastro">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="ml-1"
+              >
+                Criar conta
+              </Button>
+            </Link>
+          </p>
+        </div>
+
+        <div>
+          <h2 className="font-display text-lg font-medium text-caiment-ink">
+            Entre na sua conta
+          </h2>
+
+          <form
+            onSubmit={handleSubmit}
+            className="mt-5 space-y-3.5"
+          >
             <Input
-              label="Nome de usuário ou e-mail"
+              placeholder="E-mail"
               type="email"
-              placeholder="voce@email.com"
               icon={<Mail size={16} />}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -119,9 +124,8 @@ export default function LoginPage() {
             />
 
             <Input
-              label="Senha"
+              placeholder="Senha"
               type="password"
-              placeholder="Sua senha"
               icon={<Lock size={16} />}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -129,13 +133,12 @@ export default function LoginPage() {
             />
 
             <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-xs font-medium text-caiment-purple-600"
+              <Link
+                to="/recuperar-senha"
+                className="text-xs text-caiment-purple-600 hover:underline"
               >
-                Esqueceu a senha?
-              </button>
+                Esqueci minha senha
+              </Link>
             </div>
 
             {error && (
@@ -144,41 +147,18 @@ export default function LoginPage() {
               </p>
             )}
 
-            {message && (
-              <p className="text-sm text-caiment-purple-600">
-                {message}
-              </p>
-            )}
-
-            <Button
-              type="submit"
-              fullWidth
-              size="lg"
-              disabled={loading}
-            >
-              {loading ? 'Entrando...' : 'Avançar'}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-sm text-caiment-ink-soft">
-            Ainda não tem uma conta?{' '}
-            <Link to="/cadastro">
-              <Button variant="secondary" size="sm" className="ml-1">
-                Cadastre-se
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={loading}
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
               </Button>
-            </Link>
-          </p>
-        </div>
-
-        <div className="relative hidden justify-self-center sm:flex">
-          <div className="absolute -top-4 right-2 rounded-2xl rounded-br-sm bg-caiment-purple-50 px-3 py-2 shadow-sm">
-            <Shirt size={18} className="text-caiment-purple-500" />
-          </div>
-
-          <CaimentRobot pose="point" size={160} />
+            </div>
+          </form>
         </div>
       </div>
     </AuthLayout>
   );
 }
-
