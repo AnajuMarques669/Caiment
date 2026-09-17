@@ -22,7 +22,6 @@ import AvatarProcessingPage from '@/pages/AvatarCreation/AvatarProcessingPage';
 import AvatarPage from '@/pages/Avatar/AvatarPage';
 import MeasurementsPage from '@/pages/Measurements/MeasurementsPage';
 import FittingRoomPage from '@/pages/FittingRoom/FittingRoomPage';
-import HistoryPage from '@/pages/History/HistoryPage';
 import SettingsPage from '@/pages/Settings/SettingsPage';
 
 // =============================
@@ -38,121 +37,116 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
 
-            {/* ===================================== */}
-            {/* FITSENSE — PÁGINA INICIAL */}
-            {/* ===================================== */}
+              {/* ===================================== */}
+              {/* FITSENSE — PÁGINA INICIAL */}
+              {/* ===================================== */}
 
-            <Route
-              path="/"
-              element={<FitsenseHomePage />}
-            />
+              <Route
+                path="/"
+                element={<FitsenseHomePage />}
+              />
 
-            <Route
-              path="/fitsense"
-              element={<FitsenseHomePage />}
-            />
+              <Route
+                path="/fitsense"
+                element={<FitsenseHomePage />}
+              />
 
-            <Route
-              path="/fitsense/produtos"
-              element={<FitsenseCatalogPage />}
-            />
+              <Route
+                path="/fitsense/produtos"
+                element={<FitsenseCatalogPage />}
+              />
 
-            <Route
-              path="/fitsense/produtos/:id"
-              element={<FitsenseProductPage />}
-            />
+              <Route
+                path="/fitsense/produtos/:id"
+                element={<FitsenseProductPage />}
+              />
 
-            <Route
-              path="/fitsense/carrinho"
-              element={<FitsenseCartPage />}
-            />
+              <Route
+                path="/fitsense/carrinho"
+                element={<FitsenseCartPage />}
+              />
 
-            {/* ===================================== */}
-            {/* CAIMENT — CONTA E EXPERIÊNCIA */}
-            {/* ===================================== */}
+              {/* ===================================== */}
+              {/* CAIMENT — CONTA E EXPERIÊNCIA */}
+              {/* ===================================== */}
 
-            <Route
-              path="/login"
-              element={<LoginPage />}
-            />
+              <Route
+                path="/login"
+                element={<LoginPage />}
+              />
 
-            <Route
-              path="/cadastro"
-              element={<RegisterPage />}
-            />
+              <Route
+                path="/cadastro"
+                element={<RegisterPage />}
+              />
 
-            <Route
-              path="/verificacao"
-              element={<VerificationPage />}
-            />
+              <Route
+                path="/verificacao"
+                element={<VerificationPage />}
+              />
 
-            <Route
-              path="/onboarding"
-              element={<OnboardingWelcomePage />}
-            />
+              <Route
+                path="/onboarding"
+                element={<OnboardingWelcomePage />}
+              />
 
-            <Route
-              path="/onboarding/ajuste"
-              element={<OnboardingAdjustPage />}
-            />
+              <Route
+                path="/onboarding/ajuste"
+                element={<OnboardingAdjustPage />}
+              />
 
-            <Route
-              path="/dashboard"
-              element={<DashboardPage />}
-            />
+              <Route
+                path="/dashboard"
+                element={<DashboardPage />}
+              />
 
-            <Route
-              path="/avatar-criacao"
-              element={<AvatarCreationPage />}
-            />
+              <Route
+                path="/avatar-criacao"
+                element={<AvatarCreationPage />}
+              />
 
-            <Route
-              path="/avatar-criacao/processando"
-              element={<AvatarProcessingPage />}
-            />
+              <Route
+                path="/avatar-criacao/processando"
+                element={<AvatarProcessingPage />}
+              />
 
-            <Route
-              path="/avatar"
-              element={<AvatarPage />}
-            />
+              <Route
+                path="/avatar"
+                element={<AvatarPage />}
+              />
 
-            <Route
-              path="/medidas"
-              element={<MeasurementsPage />}
-            />
+              <Route
+                path="/medidas"
+                element={<MeasurementsPage />}
+              />
 
-            <Route
-              path="/provador"
-              element={<FittingRoomPage />}
-            />
+              <Route
+                path="/provador"
+                element={<FittingRoomPage />}
+              />
 
-            <Route
-              path="/historico"
-              element={<HistoryPage />}
-            />
+              <Route
+                path="/configuracoes"
+                element={<SettingsPage />}
+              />
 
-            <Route
-              path="/configuracoes"
-              element={<SettingsPage />}
-            />
+              {/* ===================================== */}
+              {/* ROTA NÃO ENCONTRADA */}
+              {/* ===================================== */}
 
-            {/* ===================================== */}
-            {/* ROTA NÃO ENCONTRADA */}
-            {/* ===================================== */}
+              <Route
+                path="*"
+                element={<FitsenseHomePage />}
+              />
 
-            <Route
-              path="*"
-              element={<FitsenseHomePage />}
-            />
-
-          </Routes>
-        </BrowserRouter>
-         </AuthProvider>      
-    </ToastProvider>
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

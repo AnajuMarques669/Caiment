@@ -1,7 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Ruler, RefreshCw } from 'lucide-react';
+import {
+  Ruler,
+  RefreshCw,
+  Sparkles,
+} from 'lucide-react';
 
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card } from '@/components/ui/Card';
@@ -9,40 +12,75 @@ import { Button } from '@/components/ui/Button';
 import { AvatarViewer } from '@/components/avatar/AvatarViewer';
 import { CaimentRobot } from '@/components/caiment/CaimentRobot';
 
-import { mockAvatar } from '@/data/mock/mockAvatar';
-import {
-  mockMeasurements,
-  measurementLabels,
-} from '@/data/mock/mockMeasurements';
+import { useAuth } from '@/context/AuthContext';
 
-import { formatDate } from '@/utils/format';
+import { getAvatar } from '@/services/firebase/avatar';
+
+import {
+  getMeasurements,
+  type UserMeasurements,
+} from '@/services/firebase/measurements';
 
 export default function AvatarPage() {
+  const { user } = useAuth();
+
   const [modelUrl, setModelUrl] =
     useState<string | null>(null);
 
+  const [measurements, setMeasurements] =
+    useState<UserMeasurements | null>(null);
+
+  const [loadingAvatar, setLoadingAvatar] =
+    useState(true);
+
   useEffect(() => {
-    const savedModelUrl =
-      sessionStorage.getItem(
-        'caiment_avatar_model_url',
-      );
+    async function loadAvatarData() {
+      if (!user) {
+        setLoadingAvatar(false);
+        return;
+      }
 
-    if (savedModelUrl) {
-      setModelUrl(savedModelUrl);
+      try {
+        const [avatar, savedMeasurements] =
+          await Promise.all([
+            getAvatar(user.uid),
+            getMeasurements(user.uid),
+          ]);
+
+        if (avatar?.modelUrl) {
+          setModelUrl(avatar.modelUrl);
+        }
+
+        if (savedMeasurements) {
+          setMeasurements(savedMeasurements);
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao carregar dados do avatar:',
+          error
+        );
+      } finally {
+        setLoadingAvatar(false);
+      }
     }
-  }, []);
 
-  const avatarModelUrl =
-    modelUrl || mockAvatar.modelUrl;
+    loadAvatarData();
+  }, [user]);
 
   return (
     <DashboardLayout title="Meu Avatar">
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+
+        {/* ========================= */}
+        {/* AVATAR */}
+        {/* ========================= */}
+
         <Card
           padding="none"
           className="overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 pt-5">
+
             <h2 className="font-display text-xl font-medium text-caiment-ink">
               <span className="italic">
                 Meu
@@ -54,39 +92,102 @@ export default function AvatarPage() {
               pose="heart"
               size={56}
             />
+
           </div>
 
-          <AvatarViewer
-            modelUrl={avatarModelUrl}
-            className="aspect-[4/5] w-full"
-          />
+          {/* CARREGANDO */}
+
+          {loadingAvatar ? (
+
+            <div className="flex aspect-[4/5] w-full items-center justify-center bg-caiment-purple-50/60">
+
+              <p className="text-sm text-caiment-ink-soft">
+                Carregando seu avatar...
+              </p>
+
+            </div>
+
+          ) : modelUrl ? (
+
+            /* AVATAR REAL */
+
+            <AvatarViewer
+              modelUrl={modelUrl}
+              className="aspect-[4/5] w-full"
+            />
+
+          ) : (
+
+            /* ESTADO SEM AVATAR */
+
+            <div className="relative flex aspect-[4/5] w-full flex-col items-center justify-center overflow-hidden bg-caiment-ink px-8 text-center">
+
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-caiment-purple-600/30 blur-3xl" />
+
+              <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-caiment-lime/10 blur-3xl" />
+
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl bg-caiment-purple-500 text-white shadow-lg">
+                <Sparkles size={28} />
+              </div>
+
+              <h3 className="relative mt-6 font-display text-2xl font-medium text-white">
+                Seu avatar ainda não foi criado
+              </h3>
+
+              <p className="relative mt-2 max-w-md text-sm leading-relaxed text-white/60">
+                Crie seu avatar personalizado
+                para começar a experimentar
+                suas peças no provador virtual.
+              </p>
+
+              <Link to="/avatar-criacao">
+                <Button
+                  className="relative mt-7 bg-caiment-lime text-caiment-ink hover:bg-caiment-lime-soft"
+                >
+                  Criar meu avatar
+                </Button>
+              </Link>
+
+            </div>
+          )}
+
+          {/* RODAPÉ */}
 
           <div className="flex items-center justify-between border-t border-caiment-line px-6 py-4">
+
             <p className="text-xs text-caiment-ink-soft">
               {modelUrl
-                ? 'Avatar gerado pelo Tripo AI'
-                : `Atualizado em ${formatDate(
-                    mockAvatar.updatedAt,
-                  )}`}
+                ? 'Avatar personalizado disponível'
+                : 'Nenhum avatar criado ainda'}
             </p>
 
             <Link to="/avatar-criacao">
               <Button
                 size="sm"
                 variant="outline"
-                icon={
-                  <RefreshCw size={14} />
-                }
+                icon={<RefreshCw size={14} />}
               >
-                Refazer fotos
+                {modelUrl
+                  ? 'Refazer fotos'
+                  : 'Criar avatar'}
               </Button>
             </Link>
+
           </div>
         </Card>
 
+        {/* ========================= */}
+        {/* INFORMAÇÕES */}
+        {/* ========================= */}
+
         <div className="space-y-6">
+
+          {/* MEDIDAS */}
+
           <Card>
+
             <div className="flex items-center gap-2.5">
+
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-caiment-purple-50 text-caiment-purple-500">
                 <Ruler size={17} />
               </span>
@@ -94,32 +195,96 @@ export default function AvatarPage() {
               <h3 className="font-display text-lg font-medium text-caiment-ink">
                 Suas medidas
               </h3>
+
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3">
-              {Object.entries(
-                mockMeasurements,
-              ).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="rounded-2xl bg-caiment-purple-50/60 px-3.5 py-2.5"
-                >
-                  <p className="text-[11px] text-caiment-ink-soft">
-                    {
-                      measurementLabels[
-                        key as keyof typeof measurementLabels
-                      ]
-                    }
+
+              {measurements ? (
+
+                <>
+                  {/* ALTURA */}
+
+                  <MeasurementCard
+                    label="Altura"
+                    value={measurements.height}
+                    unit="cm"
+                  />
+
+                  {/* PESO */}
+
+                  <MeasurementCard
+                    label="Peso"
+                    value={measurements.weight}
+                    unit="kg"
+                  />
+
+                  {/* OMBROS */}
+
+                  <MeasurementCard
+                    label="Ombros"
+                    value={measurements.shoulders}
+                    unit="cm"
+                  />
+
+                  {/* BUSTO */}
+
+                  <MeasurementCard
+                    label="Busto / Tórax"
+                    value={measurements.bust}
+                    unit="cm"
+                  />
+
+                  {/* CINTURA */}
+
+                  <MeasurementCard
+                    label="Cintura"
+                    value={measurements.waist}
+                    unit="cm"
+                  />
+
+                  {/* QUADRIL */}
+
+                  <MeasurementCard
+                    label="Quadril"
+                    value={measurements.hip}
+                    unit="cm"
+                  />
+
+                  {/* BRAÇO */}
+
+                  <MeasurementCard
+                    label="Braço"
+                    value={measurements.arm}
+                    unit="cm"
+                  />
+
+                  {/* PERNA */}
+
+                  <MeasurementCard
+                    label="Perna"
+                    value={measurements.leg}
+                    unit="cm"
+                  />
+                </>
+
+              ) : (
+
+                <div className="col-span-2 rounded-2xl bg-caiment-purple-50/60 p-5 text-center">
+
+                  <p className="text-sm text-caiment-ink-soft">
+                    Você ainda não cadastrou
+                    suas medidas.
                   </p>
 
-                  <p className="text-sm font-medium text-caiment-ink">
-                    {value} cm
-                  </p>
                 </div>
-              ))}
+
+              )}
+
             </div>
 
-            <Link to="/medidas">
+            <Link to="/configuracoes">
+
               <Button
                 fullWidth
                 size="sm"
@@ -128,20 +293,60 @@ export default function AvatarPage() {
               >
                 Editar medidas
               </Button>
+
             </Link>
+
           </Card>
 
+          {/* INFORMAÇÃO */}
+
           <Card className="bg-caiment-purple-50/50">
+
             <p className="text-sm text-caiment-ink">
-              Este modelo é uma representação
-              aproximada do seu corpo, usada para
-              recomendar tamanhos e simular o
-              caimento das roupas.
+              Suas medidas são utilizadas para
+              personalizar o avatar e auxiliar na
+              experiência de provador virtual.
             </p>
+
           </Card>
+
         </div>
+
       </div>
     </DashboardLayout>
   );
 }
 
+/* ========================= */
+/* COMPONENTE DE MEDIDA */
+/* ========================= */
+
+function MeasurementCard({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value?: number;
+  unit: string;
+}) {
+  const hasValue =
+    typeof value === 'number' &&
+    value > 0;
+
+  return (
+    <div className="rounded-2xl bg-caiment-purple-50/60 px-3.5 py-2.5">
+
+      <p className="text-[11px] text-caiment-ink-soft">
+        {label}
+      </p>
+
+      <p className="text-sm font-medium text-caiment-ink">
+        {hasValue
+          ? `${value} ${unit}`
+          : '--'}
+      </p>
+
+    </div>
+  );
+}

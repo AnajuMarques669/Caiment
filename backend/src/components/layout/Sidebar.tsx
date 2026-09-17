@@ -4,7 +4,6 @@ import {
   Scan,
   Shirt,
   Heart,
-  History,
   Settings,
   X,
 } from 'lucide-react';
@@ -15,7 +14,6 @@ const navItems = [
   { to: '/avatar', label: 'Meu Avatar', icon: Scan },
   { to: '/provador', label: 'Provador', icon: Shirt },
   { to: '/favoritos', label: 'Favoritos', icon: Heart },
-  { to: '/historico', label: 'Histórico', icon: History },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 

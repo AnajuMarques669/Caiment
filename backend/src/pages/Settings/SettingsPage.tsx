@@ -17,12 +17,18 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
+
 import {
   getUserProfile,
   updateUserProfile,
 } from '@/services/firebase/users';
 
-import { mockMeasurements, measurementLabels } from '@/data/mock/mockMeasurements';
+import {
+  getMeasurements,
+  saveMeasurements,
+  type UserMeasurements,
+} from '@/services/firebase/measurements';
+
 import { cn } from '@/utils/cn';
 
 type Section =
@@ -32,12 +38,36 @@ type Section =
   | 'notificacoes'
   | 'preferencias';
 
-const sections: { id: Section; label: string; icon: typeof User }[] = [
-  { id: 'perfil', label: 'Perfil', icon: User },
-  { id: 'medidas', label: 'Dados do avatar', icon: Ruler },
-  { id: 'privacidade', label: 'Privacidade', icon: ShieldCheck },
-  { id: 'notificacoes', label: 'Notificações', icon: Bell },
-  { id: 'preferencias', label: 'Preferências', icon: SlidersHorizontal },
+const sections: {
+  id: Section;
+  label: string;
+  icon: typeof User;
+}[] = [
+  {
+    id: 'perfil',
+    label: 'Perfil',
+    icon: User,
+  },
+  {
+    id: 'medidas',
+    label: 'Dados do avatar',
+    icon: Ruler,
+  },
+  {
+    id: 'privacidade',
+    label: 'Privacidade',
+    icon: ShieldCheck,
+  },
+  {
+    id: 'notificacoes',
+    label: 'Notificações',
+    icon: Bell,
+  },
+  {
+    id: 'preferencias',
+    label: 'Preferências',
+    icon: SlidersHorizontal,
+  },
 ];
 
 function Toggle({
@@ -49,17 +79,25 @@ function Toggle({
   description: string;
   defaultChecked?: boolean;
 }) {
-  const [checked, setChecked] = useState(!!defaultChecked);
+  const [checked, setChecked] =
+    useState(!!defaultChecked);
 
   return (
     <div className="flex items-center justify-between gap-4 py-3.5">
       <div>
-        <p className="text-sm font-medium text-caiment-ink">{label}</p>
-        <p className="text-xs text-caiment-ink-soft">{description}</p>
+        <p className="text-sm font-medium text-caiment-ink">
+          {label}
+        </p>
+
+        <p className="text-xs text-caiment-ink-soft">
+          {description}
+        </p>
       </div>
 
       <button
-        onClick={() => setChecked((v) => !v)}
+        onClick={() =>
+          setChecked((v) => !v)
+        }
         role="switch"
         aria-checked={checked}
         className={cn(
@@ -72,7 +110,9 @@ function Toggle({
         <span
           className={cn(
             'absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform',
-            checked ? 'translate-x-5' : 'translate-x-0.5',
+            checked
+              ? 'translate-x-5'
+              : 'translate-x-0.5',
           )}
         />
       </button>
@@ -81,16 +121,44 @@ function Toggle({
 }
 
 export default function SettingsPage() {
-  const [active, setActive] = useState<Section>('perfil');
+  const [active, setActive] =
+    useState<Section>('perfil');
 
   const { show } = useToast();
   const { user } = useAuth();
 
+  // PERFIL
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
 
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
+  const [loadingProfile, setLoadingProfile] =
+    useState(true);
+
+  const [savingProfile, setSavingProfile] =
+    useState(false);
+
+  // MEDIDAS
+  const [measurements, setMeasurements] =
+    useState<UserMeasurements>({
+      height: 0,
+      weight: 0,
+      shoulders: 0,
+      bust: 0,
+      waist: 0,
+      hip: 0,
+      arm: 0,
+      leg: 0,
+    });
+
+  const [loadingMeasurements, setLoadingMeasurements] =
+    useState(false);
+
+  const [savingMeasurements, setSavingMeasurements] =
+    useState(false);
+
+  // =========================
+  // CARREGAR PERFIL
+  // =========================
 
   useEffect(() => {
     async function loadProfile() {
@@ -100,16 +168,24 @@ export default function SettingsPage() {
       }
 
       try {
-        console.log('Carregando perfil das configurações...');
-
-        const profile = await getUserProfile(user.uid);
+        const profile =
+          await getUserProfile(user.uid);
 
         if (profile) {
           setName(profile.name || '');
-          setEmail(profile.email || user.email || '');
+          setEmail(
+            profile.email ||
+              user.email ||
+              '',
+          );
         } else {
-          setName(user.displayName || '');
-          setEmail(user.email || '');
+          setName(
+            user.displayName || '',
+          );
+
+          setEmail(
+            user.email || '',
+          );
         }
       } catch (error) {
         console.error(
@@ -117,8 +193,13 @@ export default function SettingsPage() {
           error,
         );
 
-        setName(user.displayName || '');
-        setEmail(user.email || '');
+        setName(
+          user.displayName || '',
+        );
+
+        setEmail(
+          user.email || '',
+        );
       } finally {
         setLoadingProfile(false);
       }
@@ -127,9 +208,62 @@ export default function SettingsPage() {
     loadProfile();
   }, [user]);
 
+  // =========================
+  // CARREGAR MEDIDAS
+  // =========================
+
+  useEffect(() => {
+    async function loadMeasurements() {
+      if (!user || active !== 'medidas') {
+        return;
+      }
+
+      setLoadingMeasurements(true);
+
+      try {
+        const saved =
+          await getMeasurements(user.uid);
+
+        if (saved) {
+          setMeasurements({
+            height: saved.height ?? 0,
+            weight: saved.weight ?? 0,
+            shoulders:
+              saved.shoulders ?? 0,
+            bust: saved.bust ?? 0,
+            waist: saved.waist ?? 0,
+            hip: saved.hip ?? 0,
+            arm: saved.arm ?? 0,
+            leg: saved.leg ?? 0,
+          });
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao carregar medidas:',
+          error,
+        );
+
+        show(
+          'Não foi possível carregar suas medidas.',
+        );
+      } finally {
+        setLoadingMeasurements(false);
+      }
+    }
+
+    loadMeasurements();
+  }, [user, active, show]);
+
+  // =========================
+  // SALVAR PERFIL
+  // =========================
+
   const handleSaveProfile = async () => {
     if (!user) {
-      show('Você precisa estar conectado para salvar as alterações.');
+      show(
+        'Você precisa estar conectado para salvar as alterações.',
+      );
+
       return;
     }
 
@@ -141,74 +275,199 @@ export default function SettingsPage() {
     setSavingProfile(true);
 
     try {
-      console.log('Salvando alterações do perfil...');
+      await updateUserProfile(
+        user.uid,
+        {
+          name: name.trim(),
+        },
+      );
 
-      await updateUserProfile(user.uid, {
-        name: name.trim(),
-      });
-
-      console.log('Perfil atualizado no Firestore!');
-
-      show('Perfil atualizado com sucesso.');
+      show(
+        'Perfil atualizado com sucesso.',
+      );
     } catch (error) {
       console.error(
         'Erro ao atualizar perfil:',
         error,
       );
 
-      show('Não foi possível atualizar o perfil.');
+      show(
+        'Não foi possível atualizar o perfil.',
+      );
     } finally {
       setSavingProfile(false);
     }
   };
 
+  // =========================
+  // SALVAR MEDIDAS
+  // =========================
+
+  const handleSaveMeasurements =
+    async () => {
+      if (!user) {
+        show(
+          'Você precisa estar conectado para salvar suas medidas.',
+        );
+
+        return;
+      }
+
+      const requiredMeasurements = [
+        measurements.height,
+        measurements.shoulders,
+        measurements.bust,
+        measurements.waist,
+        measurements.hip,
+        measurements.arm,
+        measurements.leg,
+      ];
+
+      const hasInvalidMeasurement =
+        requiredMeasurements.some(
+          (value) =>
+            !value || value <= 0,
+        );
+
+      if (hasInvalidMeasurement) {
+        show(
+          'Preencha todas as medidas obrigatórias.',
+        );
+
+        return;
+      }
+
+      setSavingMeasurements(true);
+
+      try {
+        await saveMeasurements(
+          user.uid,
+          measurements,
+        );
+
+        await updateUserProfile(
+          user.uid,
+          {
+            measurementsCompleted:
+              true,
+          },
+        );
+
+        show(
+          'Medidas salvas com sucesso.',
+        );
+      } catch (error) {
+        console.error(
+          'Erro ao salvar medidas:',
+          error,
+        );
+
+        show(
+          'Não foi possível salvar suas medidas.',
+        );
+      } finally {
+        setSavingMeasurements(false);
+      }
+    };
+
+  // =========================
+  // ATUALIZAR MEDIDA
+  // =========================
+
+  const updateMeasurement = (
+    key: keyof UserMeasurements,
+    value: string,
+  ) => {
+    setMeasurements((prev) => ({
+      ...prev,
+      [key]:
+        value === ''
+          ? 0
+          : Number(value),
+    }));
+  };
+
   return (
     <DashboardLayout title="Configurações">
+
       <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
 
+        {/* MENU */}
+
         <nav className="flex gap-1.5 overflow-x-auto lg:flex-col lg:overflow-visible">
-          {sections.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActive(id)}
-              className={cn(
-                'flex shrink-0 items-center gap-2.5 rounded-2xl px-4 py-2.5 text-left text-sm font-medium transition-colors',
-                active === id
-                  ? 'bg-caiment-ink text-white'
-                  : 'text-caiment-ink-soft hover:bg-caiment-purple-50 hover:text-caiment-ink',
-              )}
-            >
-              <Icon size={16} />
-              {label}
-            </button>
-          ))}
+
+          {sections.map(
+            ({
+              id,
+              label,
+              icon: Icon,
+            }) => (
+              <button
+                key={id}
+                onClick={() =>
+                  setActive(id)
+                }
+                className={cn(
+                  'flex shrink-0 items-center gap-2.5 rounded-2xl px-4 py-2.5 text-left text-sm font-medium transition-colors',
+                  active === id
+                    ? 'bg-caiment-ink text-white'
+                    : 'text-caiment-ink-soft hover:bg-caiment-purple-50 hover:text-caiment-ink',
+                )}
+              >
+                <Icon size={16} />
+
+                {label}
+              </button>
+            ),
+          )}
+
         </nav>
 
-        <Card padding={active === 'perfil' ? 'none' : 'md'}>
+        <Card
+          padding={
+            active === 'perfil'
+              ? 'none'
+              : 'md'
+          }
+        >
 
+          {/* ========================= */}
           {/* PERFIL */}
+          {/* ========================= */}
+
           {active === 'perfil' && (
             <div className="grid overflow-hidden rounded-3xl sm:grid-cols-2">
 
               <div className="bg-caiment-purple-700 p-7">
 
                 <h3 className="font-display text-xl font-medium text-white">
-                  <span className="italic">Meu</span>CAIMENT
+                  <span className="italic">
+                    Meu
+                  </span>
+                  CAIMENT
                 </h3>
 
                 <div className="mt-6 space-y-3">
 
                   {/* NOME */}
+
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5">
+
                     <input
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) =>
+                        setName(
+                          e.target.value,
+                        )
+                      }
                       placeholder={
                         loadingProfile
                           ? 'Carregando...'
                           : 'Nome'
                       }
-                      disabled={loadingProfile}
+                      disabled={
+                        loadingProfile
+                      }
                       className="w-full bg-transparent text-sm text-caiment-ink focus:outline-none"
                     />
 
@@ -216,10 +475,13 @@ export default function SettingsPage() {
                       size={13}
                       className="shrink-0 text-caiment-ink-soft"
                     />
+
                   </div>
 
-                  {/* E-MAIL */}
+                  {/* EMAIL */}
+
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5">
+
                     <input
                       value={email}
                       readOnly
@@ -231,10 +493,13 @@ export default function SettingsPage() {
                       size={13}
                       className="shrink-0 text-caiment-ink-soft"
                     />
+
                   </div>
 
                   {/* TELEFONE */}
+
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5">
+
                     <input
                       defaultValue="(11) 94433-9483"
                       className="w-full bg-transparent text-sm text-caiment-ink focus:outline-none"
@@ -244,10 +509,13 @@ export default function SettingsPage() {
                       size={13}
                       className="shrink-0 text-caiment-ink-soft"
                     />
+
                   </div>
 
                   {/* SENHA */}
+
                   <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5">
+
                     <input
                       type="password"
                       value="••••••••"
@@ -259,6 +527,7 @@ export default function SettingsPage() {
                       size={13}
                       className="shrink-0 text-caiment-ink-soft"
                     />
+
                   </div>
 
                 </div>
@@ -267,8 +536,13 @@ export default function SettingsPage() {
                   variant="secondary"
                   size="sm"
                   className="mt-5"
-                  onClick={handleSaveProfile}
-                  disabled={savingProfile || loadingProfile}
+                  onClick={
+                    handleSaveProfile
+                  }
+                  disabled={
+                    savingProfile ||
+                    loadingProfile
+                  }
                 >
                   {savingProfile
                     ? 'Salvando...'
@@ -283,7 +557,10 @@ export default function SettingsPage() {
                   href="#"
                   className="flex items-center gap-2.5 text-sm text-caiment-ink hover:underline"
                 >
-                  <FileText size={16} />
+                  <FileText
+                    size={16}
+                  />
+
                   Termos de Uso
                 </a>
 
@@ -291,19 +568,31 @@ export default function SettingsPage() {
 
                 <p className="flex items-center gap-2.5 text-sm text-caiment-ink">
                   <Phone size={16} />
+
                   (11) 94433-9483
                 </p>
 
                 <p className="flex items-center gap-2.5 text-sm text-caiment-ink">
-                  <MailIcon size={16} />
-                  {email || 'Carregando...'}
+                  <MailIcon
+                    size={16}
+                  />
+
+                  {email ||
+                    'Carregando...'}
                 </p>
 
                 <div className="pt-16">
+
                   <button className="flex items-center gap-2 text-xs font-medium text-caiment-ink/70 hover:text-caiment-ink">
-                    <Trash2 size={13} />
+
+                    <Trash2
+                      size={13}
+                    />
+
                     Excluir conta
+
                   </button>
+
                 </div>
 
               </div>
@@ -311,45 +600,276 @@ export default function SettingsPage() {
             </div>
           )}
 
+          {/* ========================= */}
           {/* MEDIDAS */}
+          {/* ========================= */}
+
           {active === 'medidas' && (
             <div>
-              <h3 className="font-display text-lg font-medium text-caiment-ink">
-                Dados do avatar
-              </h3>
 
-              <p className="mt-1 text-sm text-caiment-ink-soft">
-                Estas medidas são usadas apenas para personalizar seu avatar 3D.
-              </p>
+              <div>
+                <h3 className="font-display text-lg font-medium text-caiment-ink">
+                  Dados do avatar
+                </h3>
 
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {Object.entries(mockMeasurements).map(
-                  ([key, value]) => (
-                    <div
-                      key={key}
-                      className="rounded-2xl bg-caiment-purple-50/60 px-3.5 py-2.5"
-                    >
-                      <p className="text-[11px] text-caiment-ink-soft">
-                        {
-                          measurementLabels[
-                            key as keyof typeof measurementLabels
-                          ]
-                        }
-                      </p>
-
-                      <p className="text-sm font-medium text-caiment-ink">
-                        {value} cm
-                      </p>
-                    </div>
-                  ),
-                )}
+                <p className="mt-1 text-sm text-caiment-ink-soft">
+                  Cadastre suas medidas para
+                  personalizar seu avatar e
+                  melhorar a experiência no
+                  provador virtual.
+                </p>
               </div>
+
+              {loadingMeasurements ? (
+
+                <div className="mt-6 rounded-2xl bg-caiment-purple-50/60 p-6 text-center">
+
+                  <p className="text-sm text-caiment-ink-soft">
+                    Carregando suas medidas...
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-2">
+
+                    {/* ALTURA */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Altura (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.height ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'height',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 168"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* PESO */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Peso (kg)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value={
+                          measurements.weight ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'weight',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 65"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* OMBROS */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Ombros (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.shoulders ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'shoulders',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 42"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* BUSTO */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Busto / Tórax (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.bust ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'bust',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 90"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* CINTURA */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Cintura (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.waist ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'waist',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 72"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* QUADRIL */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Quadril (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.hip ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'hip',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 96"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* BRAÇO */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Braço (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.arm ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'arm',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 28"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                    {/* PERNA */}
+
+                    <div>
+                      <label className="text-xs font-medium text-caiment-ink-soft">
+                        Perna (cm)
+                      </label>
+
+                      <input
+                        type="number"
+                        min="0"
+                        value={
+                          measurements.leg ||
+                          ''
+                        }
+                        onChange={(e) =>
+                          updateMeasurement(
+                            'leg',
+                            e.target.value,
+                          )
+                        }
+                        placeholder="Ex.: 90"
+                        className="mt-1.5 w-full rounded-2xl border border-caiment-line bg-white px-4 py-3 text-sm text-caiment-ink outline-none transition focus:border-caiment-purple-500"
+                      />
+                    </div>
+
+                  </div>
+
+                  <div className="mt-5 flex justify-end">
+
+                    <Button
+                      size="sm"
+                      onClick={
+                        handleSaveMeasurements
+                      }
+                      disabled={
+                        savingMeasurements
+                      }
+                    >
+                      {savingMeasurements
+                        ? 'Salvando...'
+                        : 'Salvar medidas'}
+                    </Button>
+
+                  </div>
+
+                </>
+              )}
+
             </div>
           )}
 
+          {/* ========================= */}
           {/* PRIVACIDADE */}
+          {/* ========================= */}
+
           {active === 'privacidade' && (
             <div className="divide-y divide-caiment-line">
+
               <h3 className="pb-2 font-display text-lg font-medium text-caiment-ink">
                 Privacidade
               </h3>
@@ -364,12 +884,17 @@ export default function SettingsPage() {
                 description="Suas fotos originais são usadas apenas para gerar o avatar."
                 defaultChecked
               />
+
             </div>
           )}
 
+          {/* ========================= */}
           {/* NOTIFICAÇÕES */}
+          {/* ========================= */}
+
           {active === 'notificacoes' && (
             <div className="divide-y divide-caiment-line">
+
               <h3 className="pb-2 font-display text-lg font-medium text-caiment-ink">
                 Notificações
               </h3>
@@ -390,12 +915,17 @@ export default function SettingsPage() {
                 label="E-mails promocionais"
                 description="Ofertas e descontos especiais."
               />
+
             </div>
           )}
 
+          {/* ========================= */}
           {/* PREFERÊNCIAS */}
+          {/* ========================= */}
+
           {active === 'preferencias' && (
             <div className="divide-y divide-caiment-line">
+
               <h3 className="pb-2 font-display text-lg font-medium text-caiment-ink">
                 Preferências
               </h3>
@@ -410,6 +940,7 @@ export default function SettingsPage() {
                 label="Animações reduzidas"
                 description="Diminui transições e efeitos visuais."
               />
+
             </div>
           )}
 

@@ -15,7 +15,12 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { CaimentBubble } from '@/components/caiment/CaimentBubble';
 
-import { mockAvatar } from '@/data/mock/mockAvatar';
+import { useAuth } from '@/context/AuthContext';
+
+import {
+  getAvatar,
+} from '@/services/firebase/avatar';
+
 import { getCaimentMessage } from '@/data/mock/mockCaiment';
 import { formatCurrency } from '@/utils/format';
 
@@ -31,26 +36,46 @@ interface SelectedProduct {
 }
 
 export default function FittingRoomPage() {
+  const { user } = useAuth();
+
   const [modelUrl, setModelUrl] =
     useState<string | null>(null);
+
+  const [avatarReady, setAvatarReady] =
+    useState(false);
 
   const [product, setProduct] =
     useState<SelectedProduct | null>(null);
 
   useEffect(() => {
-    const savedModelUrl =
-      sessionStorage.getItem(
-        'caiment_avatar_model_url',
-      );
+    async function loadAvatar() {
+      if (!user) return;
+
+      try {
+        const avatar =
+          await getAvatar(user.uid);
+
+        if (avatar?.modelUrl) {
+          setModelUrl(
+            avatar.modelUrl,
+          );
+
+          setAvatarReady(true);
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao carregar avatar:',
+          error,
+        );
+      }
+    }
+
+    loadAvatar();
 
     const savedProduct =
       sessionStorage.getItem(
         'caiment_selected_product',
       );
-
-    if (savedModelUrl) {
-      setModelUrl(savedModelUrl);
-    }
 
     if (savedProduct) {
       try {
@@ -64,10 +89,7 @@ export default function FittingRoomPage() {
         );
       }
     }
-  }, []);
-
-  const avatarModelUrl =
-    modelUrl || mockAvatar.modelUrl;
+  }, [user]);
 
   const recommendation = {
     recommendedSize:
@@ -99,8 +121,9 @@ export default function FittingRoomPage() {
             </h2>
 
             <p className="mt-1 max-w-2xl text-sm text-caiment-ink-soft">
-              Escolha uma peça na Fitsense e visualize
-              sua experiência diretamente no Caiment.
+              Escolha uma peça na Fitsense e
+              visualize sua experiência
+              diretamente no Caiment.
             </p>
 
           </div>
@@ -114,7 +137,7 @@ export default function FittingRoomPage() {
 
         </div>
 
-        {/* SEM PEÇA SELECIONADA */}
+        {/* SEM PEÇA */}
 
         {!product ? (
 
@@ -128,7 +151,9 @@ export default function FittingRoomPage() {
 
               <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl bg-caiment-purple-500 text-white shadow-lg">
 
-                <ShoppingBag size={28} />
+                <ShoppingBag
+                  size={28}
+                />
 
               </div>
 
@@ -137,16 +162,21 @@ export default function FittingRoomPage() {
               </h3>
 
               <p className="relative mt-2 max-w-md text-sm leading-relaxed text-white/60">
-                Acesse a Fitsense, escolha uma peça
-                de roupa e clique em “Experimentar no
-                Caiment” para trazê-la para o seu provador.
+                Acesse a Fitsense, escolha
+                uma peça de roupa e clique em
+                “Experimentar no Caiment” para
+                trazê-la para o seu provador.
               </p>
 
               <Link to="/fitsense">
 
                 <Button
                   className="relative mt-7 bg-caiment-lime text-caiment-ink hover:bg-caiment-lime-soft"
-                  icon={<ShoppingBag size={16} />}
+                  icon={
+                    <ShoppingBag
+                      size={16}
+                    />
+                  }
                 >
                   Explorar a Fitsense
                 </Button>
@@ -165,7 +195,7 @@ export default function FittingRoomPage() {
 
             <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
 
-              {/* AVATAR 3D */}
+              {/* AVATAR */}
 
               <Card
                 padding="none"
@@ -174,28 +204,79 @@ export default function FittingRoomPage() {
 
                 <div className="relative overflow-hidden rounded-3xl bg-caiment-purple-50/60 p-3">
 
-                  <AvatarViewer
-                    modelUrl={avatarModelUrl}
-                    clothingModelUrl={
-                      product.clothingModel
-                    }
-                  />
+                  {avatarReady &&
+                  modelUrl ? (
+
+                    <AvatarViewer
+                      modelUrl={
+                        modelUrl
+                      }
+                      clothingModelUrl={
+                        product.clothingModel
+                      }
+                    />
+
+                  ) : (
+
+                    <div className="relative flex min-h-[520px] flex-col items-center justify-center overflow-hidden rounded-3xl bg-caiment-ink px-8 py-12 text-center">
+
+                      <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-caiment-purple-600/30 blur-3xl" />
+
+                      <div className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-caiment-lime/10 blur-3xl" />
+
+                      <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl bg-caiment-purple-500 text-white shadow-lg">
+
+                        <Sparkles
+                          size={28}
+                        />
+
+                      </div>
+
+                      <h3 className="relative mt-6 font-display text-2xl font-medium text-white">
+                        Seu avatar ainda não está pronto
+                      </h3>
+
+                      <p className="relative mt-2 max-w-md text-sm leading-relaxed text-white/60">
+                        Crie seu avatar
+                        personalizado para
+                        visualizar como esta
+                        peça poderá ser
+                        experimentada no
+                        provador virtual.
+                      </p>
+
+                      <Link to="/avatar-criacao">
+
+                        <Button
+                          className="relative mt-7 bg-caiment-lime text-caiment-ink hover:bg-caiment-lime-soft"
+                        >
+                          Criar meu avatar
+                        </Button>
+
+                      </Link>
+
+                    </div>
+
+                  )}
 
                   {/* BADGE */}
 
-                  <div className="absolute left-6 top-6 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
+                  {avatarReady &&
+                    modelUrl && (
+                      <div className="absolute left-6 top-6 flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 shadow-sm backdrop-blur">
 
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-caiment-lime-deep" />
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-caiment-lime-deep" />
 
-                    <span className="text-xs font-semibold text-caiment-ink">
-                      Provador ativo
-                    </span>
+                        <span className="text-xs font-semibold text-caiment-ink">
+                          Provador ativo
+                        </span>
 
-                  </div>
+                      </div>
+                    )}
 
                 </div>
 
-                {/* INFORMAÇÕES DO AVATAR */}
+                {/* INFORMAÇÕES */}
 
                 <div className="flex items-center justify-between gap-4 border-t border-caiment-line px-5 py-4">
 
@@ -206,7 +287,12 @@ export default function FittingRoomPage() {
                     </p>
 
                     <p className="mt-1 text-sm font-medium text-caiment-ink">
-                      Modelo personalizado
+
+                      {avatarReady &&
+                      modelUrl
+                        ? 'Modelo personalizado'
+                        : 'Avatar ainda não criado'}
+
                     </p>
 
                   </div>
@@ -216,7 +302,11 @@ export default function FittingRoomPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      icon={<Ruler size={14} />}
+                      icon={
+                        <Ruler
+                          size={14}
+                        />
+                      }
                     >
                       Ver medidas
                     </Button>
@@ -319,13 +409,15 @@ export default function FittingRoomPage() {
                   }
                 />
 
-                {/* EXPERIÊNCIA CAIMENT */}
+                {/* EXPERIÊNCIA */}
 
                 <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-caiment-purple-900 via-caiment-purple-700 to-caiment-purple-500 p-6 text-white">
 
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
 
-                    <Sparkles size={19} />
+                    <Sparkles
+                      size={19}
+                    />
 
                   </div>
 
@@ -334,8 +426,10 @@ export default function FittingRoomPage() {
                   </h3>
 
                   <p className="mt-2 text-sm leading-relaxed text-white/65">
-                    Esta peça foi enviada pela Fitsense
-                    para ser experimentada no seu avatar 3D.
+                    Esta peça foi enviada pela
+                    Fitsense para ser
+                    experimentada no seu
+                    avatar 3D.
                   </p>
 
                   <div className="mt-5 flex items-center gap-2 text-xs font-medium text-caiment-lime">
@@ -367,8 +461,8 @@ export default function FittingRoomPage() {
                   </p>
 
                   <p className="mt-1 text-sm text-caiment-ink-soft">
-                    Volte para a Fitsense para continuar
-                    sua compra.
+                    Volte para a Fitsense para
+                    continuar sua compra.
                   </p>
 
                 </div>
@@ -381,7 +475,11 @@ export default function FittingRoomPage() {
 
                     <Button
                       variant="outline"
-                      icon={<ArrowLeft size={15} />}
+                      icon={
+                        <ArrowLeft
+                          size={15}
+                        />
+                      }
                     >
                       Voltar para a peça
                     </Button>
@@ -392,7 +490,11 @@ export default function FittingRoomPage() {
 
                     <Button
                       className="bg-caiment-ink text-white hover:bg-caiment-purple-900"
-                      icon={<ExternalLink size={15} />}
+                      icon={
+                        <ExternalLink
+                          size={15}
+                        />
+                      }
                     >
                       Continuar na Fitsense
                     </Button>
@@ -425,7 +527,9 @@ export default function FittingRoomPage() {
 
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-caiment-purple-50 text-caiment-purple-600">
 
-                <ShoppingBag size={18} />
+                <ShoppingBag
+                  size={18}
+                />
 
               </div>
 
@@ -434,7 +538,8 @@ export default function FittingRoomPage() {
               </p>
 
               <p className="mt-1 text-sm leading-relaxed text-caiment-ink-soft">
-                Encontre uma peça no catálogo da loja.
+                Encontre uma peça no catálogo
+                da loja.
               </p>
 
             </Card>
@@ -445,7 +550,9 @@ export default function FittingRoomPage() {
 
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-caiment-purple-50 text-caiment-purple-600">
 
-                <Sparkles size={18} />
+                <Sparkles
+                  size={18}
+                />
 
               </div>
 
@@ -454,7 +561,8 @@ export default function FittingRoomPage() {
               </p>
 
               <p className="mt-1 text-sm leading-relaxed text-caiment-ink-soft">
-                Envie a peça para o provador virtual Caiment.
+                Envie a peça para o
+                provador virtual Caiment.
               </p>
 
             </Card>
@@ -474,7 +582,8 @@ export default function FittingRoomPage() {
               </p>
 
               <p className="mt-1 text-sm leading-relaxed text-caiment-ink-soft">
-                Veja a peça 3D no seu avatar personalizado.
+                Veja a peça 3D no seu avatar
+                personalizado.
               </p>
 
             </Card>
