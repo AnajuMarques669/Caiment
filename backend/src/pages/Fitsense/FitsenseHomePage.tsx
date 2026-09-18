@@ -76,51 +76,56 @@ function formatPrice(price: number) {
 export default function FitsenseHomePage() {
   return (
     <div className="min-h-screen bg-[#F8F7F4] text-[#171717]">
+
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[#F8F7F4]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
+
           {/* LOGO */}
-          <a
-            href="/fitsense"
+          <Link
+            to="/fitsense"
             className="text-2xl font-semibold tracking-[-0.04em]"
           >
             FITSENSE
-          </a>
+          </Link>
 
           {/* MENU */}
           <nav className="hidden items-center gap-8 md:flex">
-            <a
-              href="/fitsense"
+            <Link
+              to="/fitsense"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Início
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Produtos
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Nova coleção
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Ofertas
-            </a>
+            </Link>
           </nav>
 
           {/* AÇÕES */}
           <div className="flex items-center gap-2">
+
+            {/* PESQUISA */}
             <button
+              type="button"
               aria-label="Pesquisar"
               className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
@@ -131,19 +136,23 @@ export default function FitsenseHomePage() {
             <Link
               to="/cadastro"
               aria-label="Criar minha conta"
-              className="hidden h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5 sm:flex"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
               <UserRound size={19} strokeWidth={1.7} />
             </Link>
 
+            {/* FAVORITOS */}
             <button
+              type="button"
               aria-label="Favoritos"
               className="hidden h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5 sm:flex"
             >
               <Heart size={19} strokeWidth={1.7} />
             </button>
 
-            <button
+            {/* CARRINHO */}
+            <Link
+              to="/fitsense/carrinho"
               aria-label="Carrinho"
               className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
@@ -152,15 +161,18 @@ export default function FitsenseHomePage() {
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#171717] px-1 text-[9px] font-semibold text-white">
                 0
               </span>
-            </button>
+            </Link>
+
           </div>
         </div>
       </header>
 
       {/* HERO */}
       <main>
+
         <section className="mx-auto max-w-7xl px-5 pt-5 sm:px-8">
           <div className="relative min-h-[560px] overflow-hidden rounded-[2rem] bg-[#D9D4CC] sm:min-h-[650px]">
+
             <img
               src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1800&q=90"
               alt="Nova coleção Fitsense"
@@ -170,6 +182,7 @@ export default function FitsenseHomePage() {
             <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
 
             <div className="relative flex min-h-[560px] max-w-xl flex-col justify-end p-8 pb-12 text-white sm:min-h-[650px] sm:p-14 sm:pb-16">
+
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.3em] text-white/75">
                 Nova coleção
               </p>
@@ -184,20 +197,22 @@ export default function FitsenseHomePage() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <a
-                  href="/fitsense/produtos"
+
+                <Link
+                  to="/fitsense/produtos"
                   className="inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#171717] transition hover:scale-[1.02] hover:bg-white/90"
                 >
                   Explorar coleção
                   <ArrowRight size={17} />
-                </a>
+                </Link>
 
-                <a
-                  href="/fitsense/produtos"
+                <Link
+                  to="/fitsense/produtos"
                   className="inline-flex items-center gap-3 rounded-full border border-white/40 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/20"
                 >
                   Ver novidades
-                </a>
+                </Link>
+
               </div>
             </div>
           </div>
@@ -205,7 +220,9 @@ export default function FitsenseHomePage() {
 
         {/* CATEGORIAS */}
         <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+
           <div className="mb-10 flex items-end justify-between">
+
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-black/45">
                 Explore
@@ -216,22 +233,25 @@ export default function FitsenseHomePage() {
               </h2>
             </div>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="hidden items-center gap-2 text-sm font-semibold sm:flex"
             >
               Ver tudo
               <ArrowRight size={16} />
-            </a>
+            </Link>
+
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
+
             {categories.map((category) => (
-              <a
+              <Link
                 key={category.name}
-                href="/fitsense/produtos"
+                to="/fitsense/produtos"
                 className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#DDD8D0]"
               >
+
                 <img
                   src={category.image}
                   alt={category.name}
@@ -245,15 +265,20 @@ export default function FitsenseHomePage() {
                     {category.name}
                   </span>
                 </div>
-              </a>
+
+              </Link>
             ))}
+
           </div>
         </section>
 
         {/* PRODUTOS */}
         <section className="bg-white">
+
           <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+
             <div className="mb-10 flex items-end justify-between">
+
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-black/45">
                   Seleção Fitsense
@@ -264,23 +289,27 @@ export default function FitsenseHomePage() {
                 </h2>
               </div>
 
-              <a
-                href="/fitsense/produtos"
+              <Link
+                to="/fitsense/produtos"
                 className="hidden items-center gap-2 text-sm font-semibold sm:flex"
               >
                 Ver todos
                 <ArrowRight size={16} />
-              </a>
+              </Link>
+
             </div>
 
             <div className="grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-4 sm:gap-x-5">
+
               {products.map((product) => (
-                <a
+                <Link
                   key={product.id}
-                  href={`/fitsense/produtos/${product.id}`}
+                  to={`/fitsense/produtos/${product.id}`}
                   className="group"
                 >
+
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#F2F0EC]">
+
                     <img
                       src={product.image}
                       alt={product.name}
@@ -297,9 +326,11 @@ export default function FitsenseHomePage() {
                     >
                       <Heart size={16} strokeWidth={1.7} />
                     </button>
+
                   </div>
 
                   <div className="pt-4">
+
                     <p className="text-xs uppercase tracking-[0.15em] text-black/40">
                       {product.category}
                     </p>
@@ -311,17 +342,23 @@ export default function FitsenseHomePage() {
                     <p className="mt-2 text-sm font-semibold">
                       {formatPrice(product.price)}
                     </p>
+
                   </div>
-                </a>
+
+                </Link>
               ))}
+
             </div>
           </div>
         </section>
 
         {/* CAIMENT */}
         <section className="bg-[#171717] text-white">
+
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2">
+
             <div>
+
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.25em] text-white/45">
                 Tecnologia Fitsense
               </p>
@@ -335,16 +372,18 @@ export default function FitsenseHomePage() {
                 avatar 3D antes de decidir comprar.
               </p>
 
-              <a
-                href="/fitsense/produtos"
+              <Link
+                to="/fitsense/produtos"
                 className="mt-8 inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-[#171717] transition hover:bg-white/90"
               >
                 Conhecer as peças
                 <ArrowRight size={17} />
-              </a>
+              </Link>
+
             </div>
 
             <div className="relative aspect-square overflow-hidden rounded-[2rem] bg-[#2A2A2A]">
+
               <img
                 src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=85"
                 alt="Experiência Fitsense"
@@ -354,20 +393,30 @@ export default function FitsenseHomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
               <div className="absolute bottom-7 left-7 right-7">
+
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-medium backdrop-blur-md">
+
                   <span className="h-2 w-2 rounded-full bg-[#C6F24E]" />
+
                   Powered by Caiment
+
                 </div>
+
               </div>
             </div>
+
           </div>
         </section>
+
       </main>
 
       {/* FOOTER */}
       <footer className="bg-[#F8F7F4]">
+
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-12 sm:px-8 md:flex-row md:items-center md:justify-between">
+
           <div>
+
             <p className="text-xl font-semibold tracking-[-0.04em]">
               FITSENSE
             </p>
@@ -375,36 +424,52 @@ export default function FitsenseHomePage() {
             <p className="mt-2 text-xs text-black/45">
               Moda que combina com você.
             </p>
+
           </div>
 
           <div className="flex flex-wrap gap-6 text-xs font-medium text-black/60">
-            <a
-              href="/fitsense/produtos"
+
+            <Link
+              to="/fitsense/produtos"
               className="transition hover:text-black"
             >
               Produtos
-            </a>
+            </Link>
 
-            <a href="#" className="transition hover:text-black">
+            <a
+              href="#"
+              className="transition hover:text-black"
+            >
               Sobre nós
             </a>
 
-            <a href="#" className="transition hover:text-black">
+            <a
+              href="#"
+              className="transition hover:text-black"
+            >
               Atendimento
             </a>
 
-            <a href="#" className="transition hover:text-black">
+            <a
+              href="#"
+              className="transition hover:text-black"
+            >
               Privacidade
             </a>
+
           </div>
         </div>
 
         <div className="border-t border-black/5">
+
           <div className="mx-auto max-w-7xl px-5 py-5 text-xs text-black/35 sm:px-8">
             © 2026 Fitsense. Todos os direitos reservados.
           </div>
+
         </div>
+
       </footer>
+
     </div>
   );
 }

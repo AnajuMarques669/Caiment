@@ -368,12 +368,28 @@ export default function FitsenseProductPage() {
       clothingModel: product.clothingModel,
     };
 
+    /*
+     * Guardamos a peça escolhida para que,
+     * depois do cadastro/login, o Caiment possa
+     * recuperar a roupa que o usuário queria experimentar.
+     */
     sessionStorage.setItem(
       'caiment_selected_product',
       JSON.stringify(selectedProduct),
     );
 
-    navigate('/provador');
+    /*
+     * FLUXO PRINCIPAL:
+     *
+     * Fitsense
+     *   ↓
+     * Produto
+     *   ↓
+     * Experimentar no Caiment
+     *   ↓
+     * Cadastro
+     */
+    navigate('/cadastro');
   }
 
   function handleAddToCart() {
@@ -417,8 +433,6 @@ export default function FitsenseProductPage() {
       JSON.stringify(cart),
     );
 
-    sessionStorage.removeItem('fitsense_cart');
-
     navigate('/fitsense/carrinho');
   }
 
@@ -430,6 +444,7 @@ export default function FitsenseProductPage() {
   return (
     <div className="min-h-screen bg-[#F8F7F4] text-[#171717]">
 
+      {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[#F8F7F4]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
 
@@ -475,9 +490,9 @@ export default function FitsenseProductPage() {
           <div className="flex items-center gap-2">
 
             <Link
-              to="/login"
-              aria-label="Minha conta"
-              className="hidden h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5 sm:flex"
+              to="/cadastro"
+              aria-label="Criar minha conta"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
               <UserIcon />
             </Link>
@@ -505,6 +520,7 @@ export default function FitsenseProductPage() {
         </div>
       </header>
 
+      {/* CONTEÚDO */}
       <main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
 
         <Link
@@ -517,6 +533,7 @@ export default function FitsenseProductPage() {
 
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
 
+          {/* IMAGEM */}
           <div>
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#ECEAE5]">
 
@@ -538,6 +555,7 @@ export default function FitsenseProductPage() {
             </div>
           </div>
 
+          {/* INFORMAÇÕES */}
           <div className="flex flex-col">
 
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-black/40">
@@ -558,6 +576,7 @@ export default function FitsenseProductPage() {
               {product.description}
             </p>
 
+            {/* COR */}
             <div className="mt-8">
 
               <div className="flex items-center justify-between">
@@ -608,6 +627,7 @@ export default function FitsenseProductPage() {
               </div>
             </div>
 
+            {/* TAMANHO */}
             <div className="mt-8">
 
               <div className="flex items-center justify-between">
@@ -655,8 +675,10 @@ export default function FitsenseProductPage() {
               </div>
             </div>
 
+            {/* BOTÕES */}
             <div className="mt-8 flex flex-col gap-3">
 
+              {/* EXPERIMENTAR NO CAIMENT */}
               <button
                 type="button"
                 onClick={handleTryOn}
@@ -678,6 +700,7 @@ export default function FitsenseProductPage() {
 
               </button>
 
+              {/* CARRINHO */}
               <button
                 type="button"
                 onClick={handleAddToCart}
@@ -690,6 +713,7 @@ export default function FitsenseProductPage() {
 
             </div>
 
+            {/* CAIMENT */}
             <div className="mt-5 rounded-2xl border border-[#CDBEF2] bg-[#F4F1FC] p-4">
 
               <div className="flex gap-3">
@@ -716,6 +740,7 @@ export default function FitsenseProductPage() {
 
             </div>
 
+            {/* INFORMAÇÕES */}
             <div className="mt-8 grid grid-cols-2 gap-3">
 
               <div className="rounded-2xl border border-black/5 bg-white p-4">
@@ -757,6 +782,7 @@ export default function FitsenseProductPage() {
           </div>
         </div>
 
+        {/* DETALHES */}
         <section className="mt-20 border-t border-black/10 pt-12 sm:mt-28">
 
           <div className="grid gap-10 md:grid-cols-2">
@@ -803,6 +829,7 @@ export default function FitsenseProductPage() {
 
       </main>
 
+      {/* FOOTER */}
       <footer className="mt-20 border-t border-black/5 bg-[#F8F7F4]">
 
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-12 sm:px-8 md:flex-row md:items-center md:justify-between">
