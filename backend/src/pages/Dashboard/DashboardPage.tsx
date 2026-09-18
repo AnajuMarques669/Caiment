@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Heart,
-  History as HistoryIcon,
   Scan,
   Shirt,
   ShoppingBag,
@@ -18,27 +17,41 @@ import { AvatarViewer } from '@/components/avatar/AvatarViewer';
 
 import { useAuth } from '@/context/AuthContext';
 import { getUserProfile } from '@/services/firebase/users';
-
-import { mockHistory } from '@/data/mock/mockHistory';
-import { mockAvatar } from '@/data/mock/mockAvatar';
+import { getAvatar } from '@/services/firebase/avatar';
 import { getCaimentMessage } from '@/data/mock/mockCaiment';
-import { formatDate } from '@/utils/format';
 
 export default function DashboardPage() {
   const { user } = useAuth();
 
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>('');
+  const [loadingAvatar, setLoadingAvatar] = useState(true);
 
   useEffect(() => {
-    const savedModelUrl = sessionStorage.getItem(
-      'caiment_avatar_model_url',
-    );
+    async function loadAvatar() {
+      if (!user) {
+        setLoadingAvatar(false);
+        return;
+      }
 
-    if (savedModelUrl) {
-      setModelUrl(savedModelUrl);
+      try {
+        const avatar = await getAvatar(user.uid);
+
+        if (avatar?.modelUrl) {
+          setModelUrl(avatar.modelUrl);
+        }
+      } catch (error) {
+        console.error(
+          'Erro ao carregar avatar:',
+          error,
+        );
+      } finally {
+        setLoadingAvatar(false);
+      }
     }
-  }, []);
+
+    loadAvatar();
+  }, [user]);
 
   useEffect(() => {
     async function loadUserProfile() {
@@ -47,16 +60,27 @@ export default function DashboardPage() {
       }
 
       try {
-        console.log('Buscando perfil do usuário no Firestore...');
+        console.log(
+          'Buscando perfil do usuário no Firestore...',
+        );
 
         const profile = await getUserProfile(user.uid);
 
         if (profile?.name) {
           setUserName(profile.name);
-          console.log('Nome carregado do Firestore:', profile.name);
+
+          console.log(
+            'Nome carregado do Firestore:',
+            profile.name,
+          );
         } else {
-          setUserName(user.displayName || 'usuário');
-          console.log('Perfil não possui nome salvo.');
+          setUserName(
+            user.displayName || 'usuário',
+          );
+
+          console.log(
+            'Perfil não possui nome salvo.',
+          );
         }
       } catch (error) {
         console.error(
@@ -64,7 +88,9 @@ export default function DashboardPage() {
           error,
         );
 
-        setUserName(user.displayName || 'usuário');
+        setUserName(
+          user.displayName || 'usuário',
+        );
       }
     }
 
@@ -74,10 +100,6 @@ export default function DashboardPage() {
   const firstName = userName
     ? userName.split(' ')[0]
     : 'usuário';
-
-  const recentHistory = mockHistory.slice(0, 3);
-
-  const avatarModelUrl = modelUrl || mockAvatar.modelUrl;
 
   return (
     <DashboardLayout title="Início">
@@ -125,11 +147,55 @@ export default function DashboardPage() {
               </h3>
             </div>
 
-            <AvatarViewer
-              modelUrl={avatarModelUrl}
-              className="mx-4 mt-3 mb-4 aspect-[3/4]"
-              showControls={false}
-            />
+            {loadingAvatar ? (
+
+              <div className="mx-4 mt-3 mb-4 flex aspect-[3/4] items-center justify-center rounded-2xl bg-caiment-purple-50/60">
+                <p className="text-sm text-caiment-ink-soft">
+                  Carregando seu avatar...
+                </p>
+              </div>
+
+            ) : modelUrl ? (
+
+              <AvatarViewer
+                modelUrl={modelUrl}
+                className="mx-4 mt-3 mb-4 aspect-[3/4]"
+                showControls={false}
+              />
+
+            ) : (
+
+              <div className="relative mx-4 mt-3 mb-4 flex aspect-[3/4] flex-col items-center justify-center overflow-hidden rounded-2xl bg-caiment-ink px-5 text-center">
+
+                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-caiment-purple-600/30 blur-3xl" />
+
+                <div className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-caiment-lime/10 blur-3xl" />
+
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-caiment-purple-500 text-white">
+                  <Sparkles size={24} />
+                </div>
+
+                <h4 className="relative mt-5 font-display text-lg font-medium text-white">
+                  Seu avatar ainda não foi criado
+                </h4>
+
+                <p className="relative mt-2 text-xs leading-relaxed text-white/60">
+                  Crie seu avatar personalizado
+                  para começar sua experiência
+                  no Caiment.
+                </p>
+
+                <Link to="/avatar-criacao">
+                  <Button
+                    size="sm"
+                    className="relative mt-5 bg-caiment-lime text-caiment-ink hover:bg-caiment-lime-soft"
+                  >
+                    Criar meu avatar
+                  </Button>
+                </Link>
+
+              </div>
+            )}
 
             <div className="px-6 pb-6">
               <Link to="/avatar">
@@ -151,10 +217,13 @@ export default function DashboardPage() {
 
             {/* CTA FITSENSE */}
             <div className="relative overflow-hidden rounded-[28px] bg-caiment-ink p-7 text-white shadow-lg">
+
               <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-caiment-purple-600/30 blur-3xl" />
+
               <div className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full bg-caiment-lime/10 blur-3xl" />
 
               <div className="relative">
+
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-caiment-purple-500 text-white">
                   <Shirt size={21} />
                 </div>
@@ -176,6 +245,7 @@ export default function DashboardPage() {
                     Explorar a Fitsense
                   </Button>
                 </Link>
+
               </div>
             </div>
 
@@ -184,6 +254,7 @@ export default function DashboardPage() {
 
               <Link to="/avatar">
                 <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-caiment-purple-900/8">
+
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-caiment-purple-50 text-caiment-purple-500">
                     <Scan size={20} />
                   </span>
@@ -195,11 +266,13 @@ export default function DashboardPage() {
                   <p className="mt-1 text-sm text-caiment-ink-soft">
                     Consulte seu avatar e mantenha suas medidas atualizadas.
                   </p>
+
                 </Card>
               </Link>
 
               <Link to="/provador">
                 <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-caiment-purple-900/8">
+
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-caiment-purple-50 text-caiment-purple-500">
                     <Shirt size={20} />
                   </span>
@@ -211,11 +284,13 @@ export default function DashboardPage() {
                   <p className="mt-1 text-sm text-caiment-ink-soft">
                     Visualize a peça selecionada no seu avatar.
                   </p>
+
                 </Card>
               </Link>
 
               <Link to="/favoritos">
                 <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-caiment-purple-900/8">
+
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-caiment-purple-50 text-caiment-purple-500">
                     <Heart size={20} />
                   </span>
@@ -227,22 +302,7 @@ export default function DashboardPage() {
                   <p className="mt-1 text-sm text-caiment-ink-soft">
                     Acesse suas peças favoritas.
                   </p>
-                </Card>
-              </Link>
 
-              <Link to="/historico">
-                <Card className="h-full transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-caiment-purple-900/8">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-caiment-purple-50 text-caiment-purple-500">
-                    <HistoryIcon size={20} />
-                  </span>
-
-                  <h3 className="mt-4 font-display text-lg font-medium text-caiment-ink">
-                    Histórico
-                  </h3>
-
-                  <p className="mt-1 text-sm text-caiment-ink-soft">
-                    Veja suas últimas experimentações.
-                  </p>
                 </Card>
               </Link>
 
@@ -307,54 +367,6 @@ export default function DashboardPage() {
             </Card>
 
           </div>
-        </div>
-
-        {/* ========================================= */}
-        {/* ATIVIDADE RECENTE */}
-        {/* ========================================= */}
-
-        <div>
-          <h3 className="font-display text-lg font-medium text-caiment-ink">
-            Atividade recente
-          </h3>
-
-          <Card
-            className="mt-4 divide-y divide-caiment-line"
-            padding="none"
-          >
-            {recentHistory.length > 0 ? (
-              recentHistory.map((session) => (
-                <div
-                  key={session.id}
-                  className="flex items-center justify-between px-6 py-4"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-caiment-ink">
-                      Tamanho {session.recommendedSize}
-                    </p>
-
-                    <p className="text-xs text-caiment-ink-soft">
-                      {formatDate(session.date)}
-                    </p>
-                  </div>
-
-                  <span className="text-xs font-medium text-caiment-purple-600">
-                    {session.result === 'aprovado'
-                      ? 'Aprovado'
-                      : session.result === 'ajustar'
-                        ? 'Ajustar'
-                        : 'Não recomendado'}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="px-6 py-8 text-center">
-                <p className="text-sm text-caiment-ink-soft">
-                  Suas experimentações aparecerão aqui.
-                </p>
-              </div>
-            )}
-          </Card>
         </div>
 
       </div>
