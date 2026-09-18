@@ -7,6 +7,7 @@ import {
   uploadImage,
   createMultiviewTask,
   getTask,
+  downloadModel,
 } from './services/tripo.js';
 
 dotenv.config();
@@ -44,8 +45,9 @@ app.get('/api/health', (_req, res) => {
 ========================================= */
 
 app.get('/api/tripo/status', (_req, res) => {
-  const configured =
-    Boolean(process.env.TRIPO_API_KEY);
+  const configured = Boolean(
+    process.env.TRIPO_API_KEY
+  );
 
   res.json({
     configured,
@@ -68,17 +70,14 @@ app.post(
       name: 'front',
       maxCount: 1,
     },
-
     {
       name: 'left',
       maxCount: 1,
     },
-
     {
       name: 'back',
       maxCount: 1,
     },
-
     {
       name: 'right',
       maxCount: 1,
@@ -87,23 +86,14 @@ app.post(
 
   async (req, res) => {
     try {
-      const files =
-        req.files as {
-          [fieldname: string]:
-            Express.Multer.File[];
-        };
+      const files = req.files as {
+        [fieldname: string]: Express.Multer.File[];
+      };
 
-      const front =
-        files?.front?.[0];
-
-      const left =
-        files?.left?.[0];
-
-      const back =
-        files?.back?.[0];
-
-      const right =
-        files?.right?.[0];
+      const front = files?.front?.[0];
+      const left = files?.left?.[0];
+      const back = files?.back?.[0];
+      const right = files?.right?.[0];
 
       /* =====================================
          VALIDAR FOTOS
@@ -117,7 +107,6 @@ app.post(
       ) {
         return res.status(400).json({
           success: false,
-
           error:
             'É necessário enviar as quatro fotos.',
         });
@@ -125,44 +114,40 @@ app.post(
 
       console.log('');
       console.log(
-        '====================================',
+        '===================================='
       );
+      console.log('📸 FOTOS RECEBIDAS');
       console.log(
-        '📸 FOTOS RECEBIDAS',
-      );
-      console.log(
-        '====================================',
+        '===================================='
       );
 
       console.log(
-        `Frontal: ${front.originalname}`,
+        `Frontal: ${front.originalname}`
       );
 
       console.log(
-        `Esquerda: ${left.originalname}`,
+        `Esquerda: ${left.originalname}`
       );
 
       console.log(
-        `Traseira: ${back.originalname}`,
+        `Traseira: ${back.originalname}`
       );
 
       console.log(
-        `Direita: ${right.originalname}`,
+        `Direita: ${right.originalname}`
       );
 
       /* =====================================
-         UPLOAD
+         UPLOAD PARA O TRIPO
       ===================================== */
 
       console.log('');
       console.log(
-        '====================================',
+        '===================================='
       );
+      console.log('☁️ ENVIANDO PARA O TRIPO');
       console.log(
-        '☁️ ENVIANDO PARA O TRIPO',
-      );
-      console.log(
-        '====================================',
+        '===================================='
       );
 
       const frontToken =
@@ -178,11 +163,11 @@ app.post(
         await uploadImage(right);
 
       const imageTokens = {
-         front: frontToken,
-         left: leftToken,
-         back: backToken,
-         right: rightToken,
-    };
+        front: frontToken,
+        left: leftToken,
+        back: backToken,
+        right: rightToken,
+      };
 
       /* =====================================
          CRIAR TAREFA
@@ -190,19 +175,17 @@ app.post(
 
       console.log('');
       console.log(
-        '====================================',
+        '===================================='
       );
+      console.log('🤖 CRIANDO AVATAR 3D');
       console.log(
-        '🤖 CRIANDO AVATAR 3D',
-      );
-      console.log(
-        '====================================',
+        '===================================='
       );
 
-     const taskId =
-    await createMultiviewTask(
-    imageTokens,
-  );
+      const taskId =
+        await createMultiviewTask(
+          imageTokens
+        );
 
       /* =====================================
          RESPOSTA
@@ -220,7 +203,7 @@ app.post(
       console.error('');
 
       console.error(
-        '❌ ERRO AO GERAR AVATAR',
+        '❌ ERRO AO GERAR AVATAR'
       );
 
       console.error(error);
@@ -234,7 +217,7 @@ app.post(
             : 'Erro interno ao gerar avatar.',
       });
     }
-  },
+  }
 );
 
 /* =========================================
@@ -246,17 +229,32 @@ app.get(
 
   async (req, res) => {
     try {
-      const { taskId } =
-        req.params;
+      const { taskId } = req.params;
 
       if (!taskId) {
         return res.status(400).json({
           success: false,
-
           error:
             'Task ID não informado.',
         });
       }
+
+      console.log('');
+      console.log(
+        '===================================='
+      );
+
+      console.log(
+        '🔎 CONSULTANDO AVATAR'
+      );
+
+      console.log(
+        '===================================='
+      );
+
+      console.log(
+        `Task ID: ${taskId}`
+      );
 
       const task =
         await getTask(taskId);
@@ -269,7 +267,7 @@ app.get(
     } catch (error) {
       console.error(
         '❌ Erro ao consultar tarefa:',
-        error,
+        error
       );
 
       return res.status(500).json({
@@ -281,7 +279,135 @@ app.get(
             : 'Erro ao consultar tarefa.',
       });
     }
-  },
+  }
+);
+
+/* =========================================
+   PROXY DO MODELO 3D
+========================================= */
+
+app.get(
+  '/api/avatar/model',
+
+  async (req, res) => {
+    try {
+      const modelUrl = req.query.url;
+
+      if (
+        !modelUrl ||
+        typeof modelUrl !== 'string'
+      ) {
+        return res.status(400).json({
+          success: false,
+
+          error:
+            'URL do modelo não informada.',
+        });
+      }
+
+      /* =====================================
+         VALIDAR URL
+      ===================================== */
+
+      let parsedUrl: URL;
+
+      try {
+        parsedUrl = new URL(modelUrl);
+      } catch {
+        return res.status(400).json({
+          success: false,
+
+          error:
+            'URL do modelo inválida.',
+        });
+      }
+
+      /*
+       * Segurança:
+       * o backend só aceita URLs do Tripo.
+       */
+
+      if (
+        !parsedUrl.hostname.endsWith(
+          '.tripo3d.com'
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+
+          error:
+            'A URL do modelo não pertence ao Tripo.',
+        });
+      }
+
+      console.log('');
+      console.log(
+        '===================================='
+      );
+
+      console.log(
+        '📥 PROXY DO MODELO 3D'
+      );
+
+      console.log(
+        '===================================='
+      );
+
+      console.log(
+        `Host: ${parsedUrl.hostname}`
+      );
+
+      /* =====================================
+         BAIXAR MODELO
+      ===================================== */
+
+      const modelBuffer =
+        await downloadModel(modelUrl);
+
+      console.log(
+        `✅ Modelo recebido: ${(
+          modelBuffer.length /
+          1024 /
+          1024
+        ).toFixed(2)} MB`
+      );
+
+      /* =====================================
+         ENVIAR MODELO PARA O FRONTEND
+      ===================================== */
+
+      res.setHeader(
+        'Content-Type',
+        'model/gltf-binary'
+      );
+
+      res.setHeader(
+        'Content-Length',
+        modelBuffer.length.toString()
+      );
+
+      res.setHeader(
+        'Cache-Control',
+        'public, max-age=3600'
+      );
+
+      return res.send(modelBuffer);
+    } catch (error) {
+      console.error(
+        '❌ Erro no proxy do modelo 3D:',
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Erro desconhecido ao carregar o modelo.',
+      });
+    }
+  }
 );
 
 /* =========================================
@@ -292,19 +418,19 @@ app.listen(PORT, () => {
   console.log('');
 
   console.log(
-    '====================================',
+    '===================================='
   );
 
   console.log(
-    '🚀 CAIMENT BACKEND',
+    '🚀 CAIMENT BACKEND'
   );
 
   console.log(
-    '====================================',
+    '===================================='
   );
 
   console.log(
-    `Backend rodando em http://localhost:${PORT}`,
+    `Backend rodando em http://localhost:${PORT}`
   );
 
   console.log('');

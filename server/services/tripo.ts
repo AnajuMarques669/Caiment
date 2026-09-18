@@ -1,11 +1,11 @@
 const TRIPO_API_URL = 'https://openapi.tripo3d.ai/v3';
 
 function getApiKey(): string {
-  const apiKey = process.env.TRIPO_API_KEY;
+  const apiKey = process.env.TRIPO_API_KEY?.trim();
 
   if (!apiKey) {
     throw new Error(
-      'TRIPO_API_KEY não encontrada no arquivo .env',
+      'TRIPO_API_KEY não encontrada no arquivo .env'
     );
   }
 
@@ -28,10 +28,25 @@ interface TripoTaskResponse {
   };
 }
 
+/**
+ * Upload de uma imagem para o Tripo V3
+ */
 export async function uploadImage(
-  file: Express.Multer.File,
+  file: Express.Multer.File
 ): Promise<string> {
   const apiKey = getApiKey();
+
+  if (!file?.buffer) {
+    throw new Error('Arquivo de imagem inválido.');
+  }
+
+  console.log('');
+  console.log('====================================');
+  console.log('⬆️ UPLOAD PARA O TRIPO V3');
+  console.log('====================================');
+  console.log(`Arquivo: ${file.originalname}`);
+  console.log(`Tipo: ${file.mimetype}`);
+  console.log(`Tamanho: ${file.size} bytes`);
 
   const formData = new FormData();
 
@@ -42,37 +57,33 @@ export async function uploadImage(
   formData.append(
     'file',
     blob,
-    file.originalname,
-  );
-
-  console.log(
-    `⬆️ Enviando imagem para o Tripo V3: ${file.originalname}`,
+    file.originalname
   );
 
   const response = await fetch(
     `${TRIPO_API_URL}/files`,
     {
       method: 'POST',
-
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
-
       body: formData,
-    },
+    }
   );
 
   const text = await response.text();
 
   console.log(
-    `📡 Resposta upload ${file.originalname}:`,
-    response.status,
-    text,
+    `📡 Tripo upload → HTTP ${response.status}`
+  );
+
+  console.log(
+    `📨 Resposta: ${text}`
   );
 
   if (!response.ok) {
     throw new Error(
-      `Erro no upload da imagem para o Tripo (${response.status}): ${text}`,
+      `Tripo recusou o upload (${response.status}): ${text}`
     );
   }
 
@@ -82,64 +93,84 @@ export async function uploadImage(
     data = JSON.parse(text);
   } catch {
     throw new Error(
-      `O Tripo retornou uma resposta inválida no upload: ${text}`,
+      `Resposta inválida do Tripo durante o upload: ${text}`
     );
   }
 
-  if (
-    data.code !== 0 ||
-    !data.data?.file_token
-  ) {
+  if (data.code !== 0) {
     throw new Error(
-      `Tripo não retornou file_token: ${text}`,
+      `Tripo retornou erro no upload. Código ${data.code}: ${
+        data.message ?? text
+      }`
+    );
+  }
+
+  const fileToken = data.data?.file_token;
+
+  if (!fileToken) {
+    throw new Error(
+      `Tripo não retornou file_token: ${text}`
     );
   }
 
   console.log(
-    `✅ File token recebido para ${file.originalname}: ${data.data.file_token}`,
+    `✅ Upload concluído: ${fileToken}`
   );
 
-  return data.data.file_token;
+  return fileToken;
 }
 
+/**
+ * Cria uma tarefa Multiview → 3D
+ */
 export async function createMultiviewTask(
   imageTokens: {
     front: string;
     left: string;
     back: string;
     right: string;
-  },
+  }
 ): Promise<string> {
   const apiKey = getApiKey();
 
-  console.log(
-    '🧠 Criando tarefa multiview no Tripo V3...',
-  );
+  console.log('');
+  console.log('====================================');
+  console.log('🤖 CRIANDO AVATAR 3D');
+  console.log('====================================');
 
   const body = {
     inputs: [
-      { front: imageTokens.front },
-      { left: imageTokens.left },
-      { back: imageTokens.back },
-      { right: imageTokens.right },
+      {
+        front: imageTokens.front,
+      },
+      {
+        left: imageTokens.left,
+      },
+      {
+        back: imageTokens.back,
+      },
+      {
+        right: imageTokens.right,
+      },
     ],
 
     model: 'v3.1-20260211',
 
     texture: true,
-
     pbr: true,
 
     texture_quality: 'standard',
-
     geometry_quality: 'standard',
 
     export_uv: true,
   };
 
   console.log(
-    '📦 Configuração enviada ao Tripo V3:',
-    JSON.stringify(body, null, 2),
+    '📦 Payload enviado ao Tripo:'
+  );
+
+  console.log(
+    JSON.stringify(body, null, 2)
   );
 
   const response = await fetch(
@@ -153,20 +184,23 @@ export async function createMultiviewTask(
       },
 
       body: JSON.stringify(body),
-    },
+    }
   );
 
   const text = await response.text();
 
+  console.log('');
   console.log(
-    '📡 Resposta da criação da tarefa:',
-    response.status,
-    text,
+    `📡 Tripo geração → HTTP ${response.status}`
+  );
+
+  console.log(
+    `📨 Resposta: ${text}`
   );
 
   if (!response.ok) {
     throw new Error(
-      `Erro ao criar avatar no Tripo (${response.status}): ${text}`,
+      `Tripo recusou a criação do avatar (${response.status}): ${text}`
     );
   }
 
@@ -176,30 +210,56 @@ export async function createMultiviewTask(
     data = JSON.parse(text);
   } catch {
     throw new Error(
-      `O Tripo retornou uma resposta inválida: ${text}`,
+      `Resposta inválida do Tripo ao criar avatar: ${text}`
     );
   }
 
-  if (
-    data.code !== 0 ||
-    !data.data?.task_id
-  ) {
+  if (data.code !== 0) {
     throw new Error(
-      `Tripo não retornou task_id: ${text}`,
+      `Tripo retornou erro ao criar avatar. Código ${data.code}: ${
+        data.message ?? text
+      }`
     );
   }
 
+  const taskId = data.data?.task_id;
+
+  if (!taskId) {
+    throw new Error(
+      `Tripo não retornou task_id: ${text}`
+    );
+  }
+
+  console.log('');
   console.log(
-    `🎯 Task criada no Tripo V3: ${data.data.task_id}`,
+    '🎯 TASK CRIADA COM SUCESSO!'
   );
 
-  return data.data.task_id;
+  console.log(
+    `Task ID: ${taskId}`
+  );
+
+  return taskId;
 }
 
+/**
+ * Consulta o status de uma tarefa
+ */
 export async function getTask(
-  taskId: string,
+  taskId: string
 ) {
   const apiKey = getApiKey();
+
+  if (!taskId) {
+    throw new Error(
+      'Task ID não informado.'
+    );
+  }
+
+  console.log('');
+  console.log(
+    `🔎 Consultando task: ${taskId}`
+  );
 
   const response = await fetch(
     `${TRIPO_API_URL}/tasks/${encodeURIComponent(taskId)}`,
@@ -209,20 +269,22 @@ export async function getTask(
       headers: {
         Authorization: `Bearer ${apiKey}`,
       },
-    },
+    }
   );
 
   const text = await response.text();
 
   console.log(
-    `📡 Consulta da task ${taskId}:`,
-    response.status,
-    text,
+    `📡 Consulta → HTTP ${response.status}`
+  );
+
+  console.log(
+    `📨 Resposta: ${text}`
   );
 
   if (!response.ok) {
     throw new Error(
-      `Erro ao consultar tarefa (${response.status}): ${text}`,
+      `Erro ao consultar tarefa no Tripo (${response.status}): ${text}`
     );
   }
 
@@ -232,15 +294,88 @@ export async function getTask(
     data = JSON.parse(text);
   } catch {
     throw new Error(
-      `Resposta inválida do Tripo: ${text}`,
+      `Resposta inválida do Tripo: ${text}`
     );
   }
 
   if (data.code !== 0) {
     throw new Error(
-      `Erro do Tripo ao consultar tarefa: ${text}`,
+      `Tripo retornou erro na consulta. Código ${data.code}: ${
+        data.message ?? text
+      }`
     );
   }
 
   return data.data;
+}
+
+/**
+ * Baixa o modelo 3D do Tripo pelo BACKEND
+ *
+ * Isso evita o problema de CORS que acontece
+ * quando o navegador tenta acessar diretamente
+ * o domínio tripo-data.rg1.data.tripo3d.com
+ */
+export async function downloadModel(
+  modelUrl: string
+): Promise<Buffer> {
+  if (!modelUrl) {
+    throw new Error(
+      'URL do modelo 3D não informada.'
+    );
+  }
+
+  console.log('');
+  console.log('====================================');
+  console.log('📥 BAIXANDO MODELO 3D DO TRIPO');
+  console.log('====================================');
+
+  console.log(
+    `URL recebida: ${modelUrl}`
+  );
+
+  try {
+    const response = await fetch(modelUrl);
+
+    console.log(
+      `📡 Download do modelo → HTTP ${response.status}`
+    );
+
+    if (!response.ok) {
+      const text = await response.text();
+
+      throw new Error(
+        `Tripo recusou o download do modelo (${response.status}): ${text}`
+      );
+    }
+
+    const arrayBuffer =
+      await response.arrayBuffer();
+
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length === 0) {
+      throw new Error(
+        'O Tripo retornou um modelo vazio.'
+      );
+    }
+
+    console.log(
+      `✅ Modelo baixado com sucesso!`
+    );
+
+    console.log(
+      `📦 Tamanho: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`
+    );
+
+    return buffer;
+
+  } catch (error) {
+    console.error(
+      '❌ Erro ao baixar modelo do Tripo:',
+      error
+    );
+
+    throw error;
+  }
 }
