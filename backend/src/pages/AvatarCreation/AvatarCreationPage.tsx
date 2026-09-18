@@ -14,7 +14,13 @@ import type {
 } from '@/types';
 
 import { getCaimentMessage } from '@/data/mock/mockCaiment';
-import { generateAvatar, isLovableCloudConfigured } from '@/services/api';
+import {
+  generateAvatar,
+  isLovableCloudConfigured,
+} from '@/services/api';
+
+import { useAuth } from '@/context/AuthContext';
+import { createAvatarRecord } from '@/services/firebase/avatar';
 
 const angles: {
   angle: PhotoAngle;
@@ -24,17 +30,14 @@ const angles: {
     angle: 'front',
     label: 'Frontal',
   },
-
   {
     angle: 'back',
     label: 'Traseira',
   },
-
   {
     angle: 'left',
     label: 'Lateral esquerda',
   },
-
   {
     angle: 'right',
     label: 'Lateral direita',
@@ -45,6 +48,8 @@ export default function AvatarCreationPage() {
   const navigate = useNavigate();
 
   const { show } = useToast();
+
+  const { user } = useAuth();
 
   const [photos, setPhotos] =
     useState<
@@ -95,9 +100,7 @@ export default function AvatarCreationPage() {
 
       [angle]: {
         ...prev[angle],
-
         previewUrl: url,
-
         file,
       },
     }));
@@ -111,9 +114,7 @@ export default function AvatarCreationPage() {
 
       [angle]: {
         ...prev[angle],
-
         previewUrl: null,
-
         file: null,
       },
     }));
@@ -121,6 +122,17 @@ export default function AvatarCreationPage() {
 
   const handleGenerate =
     async () => {
+      if (!user) {
+        show(
+          'Você precisa estar conectado para criar seu avatar.',
+          'warning',
+        );
+
+        navigate('/login');
+
+        return;
+      }
+
       if (!allFilled) {
         show(
           'Envie as quatro fotos para continuar.',
@@ -193,13 +205,30 @@ export default function AvatarCreationPage() {
           'success',
         );
 
-        const data = await generateAvatar(formData);
+        const data =
+          await generateAvatar(
+            formData,
+          );
 
         console.log(
           '🎯 Task ID:',
           data.taskId,
         );
 
+        /*
+         * SALVA A TAREFA NO PERFIL
+         * DO USUÁRIO
+         */
+        await createAvatarRecord(
+          user.uid,
+          data.taskId,
+        );
+
+        /*
+         * Mantemos temporariamente
+         * apenas o taskId para a tela
+         * de processamento.
+         */
         sessionStorage.setItem(
           'caiment_avatar_task_id',
           data.taskId,
@@ -218,7 +247,7 @@ export default function AvatarCreationPage() {
           error instanceof Error
             ? error.message
             : 'Erro ao criar o avatar.',
-            'warning',
+          'warning',
         );
       } finally {
         setIsSending(false);
@@ -227,6 +256,7 @@ export default function AvatarCreationPage() {
 
   return (
     <DashboardLayout title="Criar meu avatar">
+
       <div className="mx-auto max-w-3xl space-y-6">
 
         <CaimentBubble
@@ -296,6 +326,7 @@ export default function AvatarCreationPage() {
         </Button>
 
       </div>
+
     </DashboardLayout>
   );
 }
