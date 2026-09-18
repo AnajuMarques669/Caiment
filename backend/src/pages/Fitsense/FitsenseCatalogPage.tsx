@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowDownUp,
   ChevronDown,
@@ -188,44 +189,45 @@ export default function FitsenseCatalogPage() {
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[#F8F7F4]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <a
-            href="/fitsense"
+          <Link
+            to="/fitsense"
             className="text-2xl font-semibold tracking-[-0.04em]"
           >
             FITSENSE
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
-            <a
-              href="/fitsense"
+            <Link
+              to="/fitsense"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Início
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-semibold"
             >
               Produtos
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Nova coleção
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="text-sm font-medium transition hover:opacity-50"
             >
               Ofertas
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
+            {/* PESQUISA */}
             <button
               aria-label="Pesquisar"
               className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
@@ -233,17 +235,21 @@ export default function FitsenseCatalogPage() {
               <Search size={19} strokeWidth={1.7} />
             </button>
 
-            <button
-              aria-label="Minha conta"
+            {/* CONTA → CADASTRO */}
+            <Link
+              to="/cadastro"
+              aria-label="Criar minha conta"
               className="hidden h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5 sm:flex"
             >
               <UserRound
                 size={19}
                 strokeWidth={1.7}
               />
-            </button>
+            </Link>
 
-            <button
+            {/* CARRINHO */}
+            <Link
+              to="/fitsense/carrinho"
               aria-label="Carrinho"
               className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
@@ -255,7 +261,7 @@ export default function FitsenseCatalogPage() {
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#171717] px-1 text-[9px] font-semibold text-white">
                 0
               </span>
-            </button>
+            </Link>
           </div>
         </div>
       </header>
@@ -272,9 +278,9 @@ export default function FitsenseCatalogPage() {
           </h1>
 
           <p className="mt-4 max-w-xl text-sm leading-6 text-black/50 sm:text-base">
-            Encontre peças para todos os momentos e
-            descubra como elas ficam em você com o
-            provador virtual Caiment.
+            Encontre peças para todos os momentos e descubra
+            como elas ficam em você com o provador virtual
+            Caiment.
           </p>
         </section>
 
@@ -311,9 +317,7 @@ export default function FitsenseCatalogPage() {
 
             <button
               onClick={() =>
-                setMobileFiltersOpen(
-                  !mobileFiltersOpen,
-                )
+                setMobileFiltersOpen(!mobileFiltersOpen)
               }
               className="flex h-12 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-5 text-sm font-medium sm:hidden"
             >
@@ -332,12 +336,15 @@ export default function FitsenseCatalogPage() {
                 <option value="relevancia">
                   Mais relevantes
                 </option>
+
                 <option value="menor-preco">
                   Menor preço
                 </option>
+
                 <option value="maior-preco">
                   Maior preço
                 </option>
+
                 <option value="nome">
                   Nome
                 </option>
@@ -398,12 +405,15 @@ export default function FitsenseCatalogPage() {
                 <option value="relevancia">
                   Relevância
                 </option>
+
                 <option value="menor-preco">
                   Menor preço
                 </option>
+
                 <option value="maior-preco">
                   Maior preço
                 </option>
+
                 <option value="nome">
                   Nome
                 </option>
@@ -439,9 +449,9 @@ export default function FitsenseCatalogPage() {
                   favorites.includes(product.id);
 
                 return (
-                  <a
+                  <Link
                     key={product.id}
-                    href={`/fitsense/produtos/${product.id}`}
+                    to={`/fitsense/produtos/${product.id}`}
                     className="group"
                   >
                     <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[#F0EEE9]">
@@ -493,7 +503,7 @@ export default function FitsenseCatalogPage() {
                         {formatPrice(product.price)}
                       </p>
                     </div>
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -508,8 +518,7 @@ export default function FitsenseCatalogPage() {
               </h2>
 
               <p className="mt-2 max-w-sm text-sm leading-6 text-black/45">
-                Tente procurar por outro nome ou
-                categoria.
+                Tente procurar por outro nome ou categoria.
               </p>
 
               <button
@@ -540,19 +549,19 @@ export default function FitsenseCatalogPage() {
           </div>
 
           <div className="flex flex-wrap gap-6 text-xs font-medium text-black/60">
-            <a
-              href="/fitsense"
+            <Link
+              to="/fitsense"
               className="transition hover:text-black"
             >
               Início
-            </a>
+            </Link>
 
-            <a
-              href="/fitsense/produtos"
+            <Link
+              to="/fitsense/produtos"
               className="transition hover:text-black"
             >
               Produtos
-            </a>
+            </Link>
 
             <a
               href="#"

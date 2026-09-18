@@ -6,6 +6,8 @@ import {
   Heart,
 } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 const categories = [
   {
     name: 'Camisetas',
@@ -125,12 +127,14 @@ export default function FitsenseHomePage() {
               <Search size={19} strokeWidth={1.7} />
             </button>
 
-            <button
-              aria-label="Minha conta"
+            {/* CONTA → CADASTRO */}
+            <Link
+              to="/cadastro"
+              aria-label="Criar minha conta"
               className="hidden h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5 sm:flex"
             >
               <UserRound size={19} strokeWidth={1.7} />
-            </button>
+            </Link>
 
             <button
               aria-label="Favoritos"
@@ -143,10 +147,7 @@ export default function FitsenseHomePage() {
               aria-label="Carrinho"
               className="relative flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-black/5"
             >
-              <ShoppingBag
-                size={19}
-                strokeWidth={1.7}
-              />
+              <ShoppingBag size={19} strokeWidth={1.7} />
 
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#171717] px-1 text-[9px] font-semibold text-white">
                 0
@@ -178,9 +179,8 @@ export default function FitsenseHomePage() {
               </h1>
 
               <p className="mt-6 max-w-md text-sm leading-6 text-white/80 sm:text-base">
-                Descubra peças pensadas para o seu estilo e
-                experimente antes de comprar com o provador
-                virtual Caiment.
+                Descubra peças pensadas para o seu estilo e experimente antes
+                de comprar com o provador virtual Caiment.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -295,10 +295,7 @@ export default function FitsenseHomePage() {
                       }}
                       className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur-md transition hover:bg-white"
                     >
-                      <Heart
-                        size={16}
-                        strokeWidth={1.7}
-                      />
+                      <Heart size={16} strokeWidth={1.7} />
                     </button>
                   </div>
 
@@ -334,9 +331,8 @@ export default function FitsenseHomePage() {
               </h2>
 
               <p className="mt-6 max-w-lg text-sm leading-7 text-white/60 sm:text-base">
-                Com o Caiment, você pode visualizar como uma
-                peça fica no seu avatar 3D antes de decidir
-                comprar.
+                Com o Caiment, você pode visualizar como uma peça fica no seu
+                avatar 3D antes de decidir comprar.
               </p>
 
               <a
@@ -389,24 +385,15 @@ export default function FitsenseHomePage() {
               Produtos
             </a>
 
-            <a
-              href="#"
-              className="transition hover:text-black"
-            >
+            <a href="#" className="transition hover:text-black">
               Sobre nós
             </a>
 
-            <a
-              href="#"
-              className="transition hover:text-black"
-            >
+            <a href="#" className="transition hover:text-black">
               Atendimento
             </a>
 
-            <a
-              href="#"
-              className="transition hover:text-black"
-            >
+            <a href="#" className="transition hover:text-black">
               Privacidade
             </a>
           </div>

@@ -33,8 +33,7 @@ export default function FitsenseCartPage() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const savedCart =
-  localStorage.getItem('fitsense_cart');
+    const savedCart = localStorage.getItem('fitsense_cart');
 
     if (savedCart) {
       try {
@@ -50,10 +49,7 @@ export default function FitsenseCartPage() {
   useEffect(() => {
     if (!loaded) return;
 
-   localStorage.setItem(
-  'fitsense_cart',
-  JSON.stringify(cart),
-);
+    localStorage.setItem('fitsense_cart', JSON.stringify(cart));
   }, [cart, loaded]);
 
   function updateQuantity(
@@ -63,24 +59,20 @@ export default function FitsenseCartPage() {
     change: number,
   ) {
     setCart((current) =>
-      current
-        .map((item) => {
-          if (
-            item.id === id &&
-            item.size === size &&
-            item.color === color
-          ) {
-            return {
-              ...item,
-              quantity: Math.max(
-                1,
-                item.quantity + change,
-              ),
-            };
-          }
+      current.map((item) => {
+        if (
+          item.id === id &&
+          item.size === size &&
+          item.color === color
+        ) {
+          return {
+            ...item,
+            quantity: Math.max(1, item.quantity + change),
+          };
+        }
 
-          return item;
-        }),
+        return item;
+      }),
     );
   }
 
@@ -103,19 +95,17 @@ export default function FitsenseCartPage() {
 
   function clearCart() {
     setCart([]);
-   localStorage.removeItem('fitsense_cart');
+    localStorage.removeItem('fitsense_cart');
   }
 
   const subtotal = useMemo(() => {
     return cart.reduce(
-      (total, item) =>
-        total + item.price * item.quantity,
+      (total, item) => total + item.price * item.quantity,
       0,
     );
   }, [cart]);
 
   const shipping = subtotal >= 300 ? 0 : 19.9;
-
   const total = subtotal + shipping;
 
   const totalItems = cart.reduce(
@@ -125,11 +115,9 @@ export default function FitsenseCartPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F7F4] text-[#171717]">
-
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b border-black/5 bg-[#F8F7F4]/95 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-
           <Link
             to="/fitsense"
             className="text-2xl font-semibold tracking-[-0.04em]"
@@ -172,10 +160,7 @@ export default function FitsenseCartPage() {
             aria-label="Carrinho"
             className="relative flex h-10 w-10 items-center justify-center rounded-full bg-black/5"
           >
-            <ShoppingBag
-              size={19}
-              strokeWidth={1.7}
-            />
+            <ShoppingBag size={19} strokeWidth={1.7} />
 
             {totalItems > 0 && (
               <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#171717] px-1 text-[9px] font-semibold text-white">
@@ -183,12 +168,10 @@ export default function FitsenseCartPage() {
               </span>
             )}
           </Link>
-
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
-
         {/* VOLTAR */}
         <Link
           to="/fitsense/produtos"
@@ -200,7 +183,6 @@ export default function FitsenseCartPage() {
 
         {/* TÍTULO */}
         <div className="mt-8">
-
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-black/40">
             Fitsense
           </p>
@@ -218,14 +200,11 @@ export default function FitsenseCartPage() {
                     : 'itens selecionados'
                 }`}
           </p>
-
         </div>
 
         {cart.length === 0 ? (
-
           /* CARRINHO VAZIO */
           <div className="mt-12 flex min-h-[420px] flex-col items-center justify-center rounded-[2rem] bg-white px-6 text-center">
-
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#F0EEE9]">
               <ShoppingBag size={30} strokeWidth={1.5} />
             </div>
@@ -235,8 +214,8 @@ export default function FitsenseCartPage() {
             </h2>
 
             <p className="mt-2 max-w-sm text-sm leading-6 text-black/45">
-              Explore a coleção Fitsense e encontre
-              peças que combinam com você.
+              Explore a coleção Fitsense e encontre peças que
+              combinam com você.
             </p>
 
             <Link
@@ -245,26 +224,18 @@ export default function FitsenseCartPage() {
             >
               Explorar produtos
             </Link>
-
           </div>
-
         ) : (
-
           /* CARRINHO COM PRODUTOS */
           <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
-
             {/* PRODUTOS */}
             <div className="space-y-4">
-
               {cart.map((item) => (
-
                 <div
                   key={`${item.id}-${item.size}-${item.color}`}
                   className="rounded-[1.5rem] bg-white p-4 sm:p-5"
                 >
-
                   <div className="flex gap-4 sm:gap-6">
-
                     {/* IMAGEM */}
                     <Link
                       to={`/fitsense/produtos/${item.id}`}
@@ -279,11 +250,8 @@ export default function FitsenseCartPage() {
 
                     {/* INFORMAÇÕES */}
                     <div className="flex min-w-0 flex-1 flex-col">
-
                       <div className="flex items-start justify-between gap-3">
-
                         <div>
-
                           <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-black/35">
                             {item.category}
                           </p>
@@ -294,7 +262,6 @@ export default function FitsenseCartPage() {
                           >
                             {item.name}
                           </Link>
-
                         </div>
 
                         <button
@@ -311,11 +278,9 @@ export default function FitsenseCartPage() {
                         >
                           <Trash2 size={16} />
                         </button>
-
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2 text-xs text-black/50">
-
                         <span className="rounded-full bg-[#F5F4F1] px-3 py-1.5">
                           Tamanho: {item.size}
                         </span>
@@ -323,14 +288,11 @@ export default function FitsenseCartPage() {
                         <span className="rounded-full bg-[#F5F4F1] px-3 py-1.5">
                           Cor: {item.color}
                         </span>
-
                       </div>
 
                       <div className="mt-auto flex items-end justify-between gap-4 pt-4">
-
                         {/* QUANTIDADE */}
                         <div className="flex items-center rounded-full border border-black/10">
-
                           <button
                             type="button"
                             onClick={() =>
@@ -366,7 +328,6 @@ export default function FitsenseCartPage() {
                           >
                             <Plus size={14} />
                           </button>
-
                         </div>
 
                         <p className="text-base font-semibold">
@@ -374,20 +335,14 @@ export default function FitsenseCartPage() {
                             item.price * item.quantity,
                           )}
                         </p>
-
                       </div>
-
                     </div>
-
                   </div>
-
                 </div>
-
               ))}
 
               {/* LIMPAR */}
               <div className="flex justify-end pt-2">
-
                 <button
                   type="button"
                   onClick={clearCart}
@@ -395,22 +350,17 @@ export default function FitsenseCartPage() {
                 >
                   Limpar carrinho
                 </button>
-
               </div>
-
             </div>
 
             {/* RESUMO */}
             <aside>
-
               <div className="sticky top-28 rounded-[2rem] bg-white p-6 sm:p-7">
-
                 <h2 className="text-xl font-medium tracking-[-0.03em]">
                   Resumo do pedido
                 </h2>
 
                 <div className="mt-6 space-y-4">
-
                   <div className="flex justify-between text-sm">
                     <span className="text-black/50">
                       Subtotal
@@ -432,13 +382,11 @@ export default function FitsenseCartPage() {
                         : formatPrice(shipping)}
                     </span>
                   </div>
-
                 </div>
 
                 <div className="my-6 h-px bg-black/10" />
 
                 <div className="flex items-center justify-between">
-
                   <span className="text-base font-semibold">
                     Total
                   </span>
@@ -446,12 +394,10 @@ export default function FitsenseCartPage() {
                   <span className="text-xl font-semibold">
                     {formatPrice(total)}
                   </span>
-
                 </div>
 
                 {subtotal < 300 && (
                   <div className="mt-5 rounded-2xl bg-[#F4F1FC] p-4">
-
                     <p className="text-xs leading-5 text-[#5A2FB8]">
                       Faltam{' '}
                       <strong>
@@ -459,7 +405,6 @@ export default function FitsenseCartPage() {
                       </strong>{' '}
                       para você ganhar frete grátis.
                     </p>
-
                   </div>
                 )}
 
@@ -477,7 +422,6 @@ export default function FitsenseCartPage() {
                 </button>
 
                 <div className="mt-6 grid gap-3 border-t border-black/5 pt-5">
-
                   <div className="flex items-center gap-3 text-xs text-black/50">
                     <Truck size={16} />
                     Envio seguro
@@ -487,26 +431,17 @@ export default function FitsenseCartPage() {
                     <ShieldCheck size={16} />
                     Compra segura
                   </div>
-
                 </div>
-
               </div>
-
             </aside>
-
           </div>
-
         )}
-
       </main>
 
       {/* FOOTER */}
       <footer className="mt-20 border-t border-black/5 bg-[#F8F7F4]">
-
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-12 sm:px-8 md:flex-row md:items-center md:justify-between">
-
           <div>
-
             <p className="text-xl font-semibold tracking-[-0.04em]">
               FITSENSE
             </p>
@@ -514,11 +449,9 @@ export default function FitsenseCartPage() {
             <p className="mt-2 text-xs text-black/45">
               Moda que combina com você.
             </p>
-
           </div>
 
           <div className="flex flex-wrap gap-6 text-xs font-medium text-black/60">
-
             <Link
               to="/fitsense"
               className="transition hover:text-black"
@@ -546,21 +479,15 @@ export default function FitsenseCartPage() {
             >
               Privacidade
             </a>
-
           </div>
-
         </div>
 
         <div className="border-t border-black/5">
-
           <div className="mx-auto max-w-7xl px-5 py-5 text-xs text-black/35 sm:px-8">
             © 2026 Fitsense. Todos os direitos reservados.
           </div>
-
         </div>
-
       </footer>
-
     </div>
   );
 }
